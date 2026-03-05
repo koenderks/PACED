@@ -11,6 +11,13 @@ library(knitr)
 library(kableExtra)
 library(htmltools)
 
+# Workaround for Chromium Issue 468227
+downloadButton <- function(...) {
+  tag <- shiny::downloadButton(...)
+  tag$attribs$download <- NULL
+  tag
+}
+
 build_report_html <- function(
     name,
     examiner,
@@ -1059,7 +1066,7 @@ server <- function(input, output, session) {
     datatable(
       item_stats_react(),
       rownames = FALSE,
-      options = list(pageLength = 10, autoWidth = TRUE),
+      options = list(pageLength = 5, autoWidth = TRUE),
       class = "stripe hover order-column compact row-border"
     ) %>%
       formatStyle(
