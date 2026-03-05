@@ -1,0 +1,167 @@
+---
+title: "Assessment Report"
+output:
+  html_document:
+    theme: cosmo
+    self_contained: true
+params:
+  name: NA
+  name_examiner: NA
+  descriptives: NA
+  hist_plot: NA
+  test_stats: NA
+  item_stats: NA
+  item_plot: NA
+  corr_plot: NA
+---
+
+<style>
+h1.title {
+  display: none;
+}
+</style>
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center"
+)
+
+library(knitr)
+library(kableExtra)
+```
+
+## **Assessment Report: `r params$name`**
+
+Report generated on `r format(Sys.time(), "%d-%m-%Y")` by `r params$name_examiner`
+
+---
+
+### 1. Summary
+
+#### 1.1 Descriptive statistics
+
+The assessment included `r params$descriptives$Value[params$descriptives$Statistic=="Number of participants"]` participants. The average score achieved was `r params$descriptives$Value[params$descriptives$Statistic=="Average achieved score"]`, with a median of `r params$descriptives$Value[params$descriptives$Statistic=="Median achieved score"]`. The standard deviation was `r params$descriptives$Value[params$descriptives$Statistic=="Standard deviation"]`, indicating `r if(params$descriptives$Value[params$descriptives$Statistic=="Standard deviation"] > 10) "considerable variability" else "relatively consistent performance"` among participants. The skewness of the score distribution is `r params$descriptives$Value[params$descriptives$Statistic=="Skewness"]`, suggesting the distribution is `r if(params$descriptives$Value[params$descriptives$Statistic=="Skewness"] > 0.5) "positively skewed, with a tendency toward lower scores" else if(params$descriptives$Value[params$descriptives$Statistic=="Skewness"] < -0.5) "negatively skewed, with a tendency toward higher scores" else "approximately symmetric"`.
+
+```{r, echo = FALSE, warning=FALSE}
+tab <- knitr::kable(params$descriptives, row.names = FALSE, format = "html")
+kableExtra::kable_styling(tab, position = "center", full_width = FALSE, bootstrap_options = "striped")
+```
+
+#### 1.2 Distribution of Achieved Scores
+
+The histogram shows that most students achieved scores in the `r if(mean(params$item_stats[, "P"]) > 0.7) "upper" else "middle/lower"` range. Any peaks at extreme ends suggest possible ceiling or floor effects that may affect discrimination between students.
+
+```{r, fig.width=7, fig.height=4, fig.align='center', echo = FALSE, warning=FALSE}
+params$hist_plot
+```
+
+### 2. Classical Assessment Analysis
+
+#### 2.1 Assessments Statistics
+
+This table displays the key metrics for each overall assessment. The cells are colored according to the values prescribed in the *Guideline Assessment Analysis*.
+
+- **Average P (Difficulty)**: Values near 0 indicate very difficult items, values near 1 indicate very easy items. Ideally, items are moderately difficult (0.3–0.8, green) to provide effective discrimination.
+
+- **Average RIT and Average RIR (Discrimination)**: These values measure how well the assessment between higher and lower scoring participants. Values below 0.2 (red) suggest poor discrimination; 0.2–0.3 (orange) indicate average discrimination; values above 0.3 (green) indicate good discrimination.
+
+- **Cronbach's alpha (Internal Consistency)**: Values above 0.7 (green) indicate reliable measurement of the intended construct. Lower values suggest inconsistent items or that some items may not contribute effectively to overall reliability.
+
+```{r, echo = FALSE, warning=FALSE}
+# Copy table
+tab <- params$test_stats
+
+# Apply coloring to P
+tab$`Average P` <- cell_spec(tab$`Average P`, "html",
+                    color = "black",
+                    background = ifelse(tab$`Average P` < 0.2, "tomato",
+                                 ifelse(tab$`Average P` <= 0.8, "lightgreen", "tomato")))
+
+# Apply coloring to RIT
+tab$`Average RIT` <- cell_spec(tab$`Average RIT`, "html",
+                      color = "black",
+                      background = ifelse(tab$`Average RIT` < 0.2, "tomato",
+                                   ifelse(tab$`Average RIT` <= 0.3, "orange", "lightgreen")))
+
+# Apply coloring to RIR
+tab$`Average RIR` <- cell_spec(tab$`Average RIR`, "html",
+                      color = "black",
+                      background = ifelse(tab$`Average RIR` < 0.2, "tomato",
+                                   ifelse(tab$`Average RIR` <= 0.3, "orange", "lightgreen")))
+
+tab$`Cronbach's alpha` <- cell_spec(tab$`Cronbach's alpha`, "html",
+                      color = "black",
+                      background = ifelse(tab$`Cronbach's alpha` < 0.7, "tomato", "lightgreen"))
+
+# Render table
+kable(tab, escape = FALSE, row.names = FALSE, format = "html") %>%
+  kable_styling(position = "center", full_width = FALSE, bootstrap_options = c("striped", "hover"))
+```
+
+#### 2.2 Item Statistics
+
+This table summarizes the key metrics for each individual item. The cells are colored according to the values prescribed in the *Guideline Assessment Analysis*.
+
+- **P (Item Difficulty):** Values near 0 indicate very difficult items, near 1 indicate very easy items. Cells colored red indicate items that are too easy (< 0.2) or too hard (> 0.8), which may not effectively differentiate student performance. Cells colored green indicate items with ideal difficulty (moderate challenge).
+
+- **RIT (Item-Total Correlation):** Measures how well an item correlates with the total achieved score. Red indicates poor discrimination (<0.2), orange indicates average discrimination (0.2–0.3), and green indicates strong discrimination (>0.3). Items with low RIT may not reliably distinguish between high- and low-performing students.
+
+- **RIR (Item-Rest Correlation):** Measures correlation of the item with the rest of the assessment (excluding the item itself). Coloring follows the same logic as RIT: red = low, orange = average, green = good. Low RIR can suggest redundancy or misaligned items.
+
+- **Alpha-if-deleted:** Shows the impact on Cronbach’s alpha if the item were removed. Red indicates removing the item improves overall reliability, suggesting the item may be problematic; green indicates removal reduces reliability, confirming the item’s contribution.
+
+**Interpretation Summary:**  
+
+- Items with red P cells may need adjustment or removal to better balance the assessment  
+- Items with red or orange RIT/RIR cells contribute little to discrimination and may reduce reliability.  
+- Items that increase alpha-if-deleted are colored red as they are candidates for revision.  
+
+```{r, echo = FALSE, warning=FALSE}
+# Copy table
+tab <- params$item_stats
+
+# Apply coloring to P
+tab$P <- cell_spec(tab$P, "html",
+                    color = "black",
+                    background = ifelse(tab$P < 0.2, "tomato",
+                                 ifelse(tab$P <= 0.8, "lightgreen", "tomato")))
+
+# Apply coloring to RIT
+tab$RIT <- cell_spec(tab$RIT, "html",
+                      color = "black",
+                      background = ifelse(tab$RIT < 0.2, "tomato",
+                                   ifelse(tab$RIT <= 0.3, "orange", "lightgreen")))
+
+# Apply coloring to RIR
+tab$RIR <- cell_spec(tab$RIR, "html",
+                      color = "black",
+                      background = ifelse(tab$RIR < 0.2, "tomato",
+                                   ifelse(tab$RIR <= 0.3, "orange", "lightgreen")))
+
+tab$`Alpha-if-deleted` <- cell_spec(tab$`Alpha-if-deleted`, "html",
+                      color = "black",
+                      background = ifelse(tab$`Alpha-if-deleted` < params$test_stats[1, 4], "lightgreen", "tomato"))
+
+# Render table
+kable(tab, escape = FALSE, row.names = FALSE, format = "html") %>%
+  kable_styling(position = "center", full_width = FALSE, bootstrap_options = c("striped", "hover"))
+```
+
+#### 2.3 Item Difficulty & Discrimination
+
+The figure below plots item difficulty (P-values) against item discrimination (RIT). Items that are difficult and poorly discriminating may need revision, while easy items with high discrimination typically contribute positively to the assessment.
+
+```{r, fig.width=9, fig.height=5, fig.align='center', echo = FALSE, warning=FALSE}
+params$item_plot
+```
+
+#### 2.4 Item Correlation Matrix
+
+The correlation matrix highlights relationships between items. Strong positive correlations (> 0.6) may indicate redundancy, while very low or negative correlations may suggest misalignment or potential errors. Items with unusual correlations should be reviewed to improve assessment quality.
+
+```{r, fig.width=11, fig.height=11, fig.align='center', echo = FALSE, warning=FALSE}
+params$corr_plot
+```
