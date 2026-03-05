@@ -296,7 +296,7 @@ create_histogram <- function(input, parsed) {
     maxScore <- parsed()$maxScore
     xBreaks <- pretty(c(0, maxScore), min.n = 4)
     h <- hist(c(0, totalScores, maxScore), breaks = 30, plot = FALSE)
-    yBreaks <- pretty(c(0, h$counts), min.n = 4)
+    yBreaks <- pretty(c(0, h$counts * 1.5), min.n = 4)
     p <- ggplot(data.frame(x = totalScores), aes(x = x)) +
       geom_histogram(bins = 30, color = "black", fill = "lightgray") +
       scale_x_continuous(name = "Achieved score", limits = c(-0.5, max(xBreaks) + 0.5), breaks = xBreaks) +
@@ -405,7 +405,7 @@ create_item_plot <- function(input, parsed) {
     p <- ggplot(df_long, aes(x = item, y = value, fill = metric)) +
       geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
       scale_fill_manual(name = NULL, values = c(nyenrode_gold, nyenrode_blue2), labels = c("P (Difficulty)", "RIT (Discrimination)")) +
-      scale_y_continuous(name = NULL, limits = c(0, 1), breaks = yBreaks) +
+      scale_y_continuous(name = NULL, limits = c(min(yBreaks), max(yBreaks)), breaks = yBreaks) +
       scale_x_discrete(name = "Item (Cirrus ID)") +
       geom_segment(x = -Inf, xend = -Inf, y = min(yBreaks), yend = max(yBreaks)) +
       geom_segment(y = -Inf, yend = -Inf, x = 1, xend = ncol(d)) +
