@@ -30,18 +30,12 @@ build_report_html <- function(
     corr_plot
 ) {
   
-  library(htmltools)
-  library(knitr)
-  library(kableExtra)
-  library(ggplot2)
-  library(base64enc)
-  
   # ----- helper: embed plot in HTML -----
   embed_plot <- function(plot, width, height) {
     f <- tempfile(fileext = ".png")
     ggsave(f, plot, width = width, height = height, dpi = 300)
     uri <- base64enc::dataURI(file = f, mime = "image/png")
-    tags$img(src = uri)
+    tags$img(src = uri, style = "display:block; margin:20px auto; max-width:100%;")
   }
   
   # ----- Derived interpretations -----
@@ -57,26 +51,26 @@ build_report_html <- function(
   # ----- Tables with coloring -----
   
   # Descriptives
-  desc_tab <- knitr::kable(descriptives, row.names = FALSE, format = "html") %>%
+  desc_tab <- knitr::kable(descriptives, row.names = FALSE, format = "html", table.attr = 'class="left_table"') %>%
     kable_styling(full_width = FALSE, position = "center", bootstrap_options = "striped")
   
   # Test stats
   test_tab <- test_stats
-  test_tab$`Average P` <- cell_spec(test_tab$`Average P`,"html", color="black", background = ifelse(test_tab$`Average P` < 0.2,"tomato",ifelse(test_tab$`Average P` <=0.8,"lightgreen","tomato")))
-  test_tab$`Average RIT` <- cell_spec(test_tab$`Average RIT`,"html", color="black", background = ifelse(test_tab$`Average RIT` < 0.2,"tomato",ifelse(test_tab$`Average RIT` <=0.3,"orange","lightgreen")))
-  test_tab$`Average RIR` <- cell_spec(test_tab$`Average RIR`,"html", color="black", background = ifelse(test_tab$`Average RIR` < 0.2,"tomato",ifelse(test_tab$`Average RIR` <=0.3,"orange","lightgreen")))
-  test_tab$`Cronbach's alpha` <- cell_spec(test_tab$`Cronbach's alpha`,"html", color="black", background = ifelse(test_tab$`Cronbach's alpha` < 0.7,"tomato","lightgreen"))
-  test_tab <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html") %>%
+  test_tab$`Average P` <- cell_spec(test_tab$`Average P`,"html", color = ifelse(test_tab$`Average P` < 0.2,"tomato",ifelse(test_tab$`Average P` <=0.8,"forestgreen","tomato")))
+  test_tab$`Average RIT` <- cell_spec(test_tab$`Average RIT`,"html", color = ifelse(test_tab$`Average RIT` < 0.2,"tomato",ifelse(test_tab$`Average RIT` <=0.3,"orange","forestgreen")))
+  test_tab$`Average RIR` <- cell_spec(test_tab$`Average RIR`,"html", color = ifelse(test_tab$`Average RIR` < 0.2,"tomato",ifelse(test_tab$`Average RIR` <=0.3,"orange","forestgreen")))
+  test_tab$`Cronbach's alpha` <- cell_spec(test_tab$`Cronbach's alpha`,"html", color = ifelse(test_tab$`Cronbach's alpha` < 0.7,"tomato","forestgreen"))
+  test_tab <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') %>%
     kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped","hover"))
   
   # Item stats
   alpha_test <- test_stats$`Cronbach's alpha`[1]
   item_tab <- item_stats
-  item_tab$P <- cell_spec(item_tab$P,"html", color="black", background = ifelse(item_tab$P < 0.2,"tomato",ifelse(item_tab$P <=0.8,"lightgreen","tomato")))
-  item_tab$RIT <- cell_spec(item_tab$RIT,"html", color="black", background = ifelse(item_tab$RIT < 0.2,"tomato",ifelse(item_tab$RIT <=0.3,"orange","lightgreen")))
-  item_tab$RIR <- cell_spec(item_tab$RIR,"html", color="black", background = ifelse(item_tab$RIR < 0.2,"tomato",ifelse(item_tab$RIR <=0.3,"orange","lightgreen")))
-  item_tab$`Alpha-if-deleted` <- cell_spec(item_tab$`Alpha-if-deleted`,"html", color="black", background = ifelse(item_tab$`Alpha-if-deleted` < alpha_test,"lightgreen","tomato"))
-  item_tab <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html") %>%
+  item_tab$P <- cell_spec(item_tab$P,"html", color = ifelse(item_tab$P < 0.2,"tomato",ifelse(item_tab$P <=0.8,"forestgreen","tomato")))
+  item_tab$RIT <- cell_spec(item_tab$RIT,"html", color = ifelse(item_tab$RIT < 0.2,"tomato",ifelse(item_tab$RIT <=0.3,"orange","forestgreen")))
+  item_tab$RIR <- cell_spec(item_tab$RIR,"html", color = ifelse(item_tab$RIR < 0.2,"tomato",ifelse(item_tab$RIR <=0.3,"orange","forestgreen")))
+  item_tab$`Alpha-if-deleted` <- cell_spec(item_tab$`Alpha-if-deleted`,"html", color = ifelse(item_tab$`Alpha-if-deleted` < alpha_test,"forestgreen","tomato"))
+  item_tab <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') %>%
     kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped","hover"))
   
   # ----- Build HTML -----
@@ -85,65 +79,121 @@ build_report_html <- function(
       tags$head(
         tags$title("Assessment Report"),
         tags$style(HTML("
-          body {font-family: Arial; margin:40px;}
-          h1 {color:#00205B;}
-          h2 {margin-top:40px;}
-          h3 {margin-top:30px;}
-          table {border-collapse: collapse; width:100%;}
-          th,td {border:1px solid #ddd; padding:6px;}
-          th {background:#f4f6fb;}
-          img {max-width:100%; margin-top:10px;}
+          /* Remove extra body margin and center content */
+          body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #FFFFFF;
+          }
+
+          /* Container for centering content at 100% width */
+          #report_container {
+            width: 90%;
+            margin: 0 auto;
+            padding: 20px 0;
+            text-align: justify;
+          }
+
+          h1 { color: #00205B; text-align: left; margin-bottom: 20px; }
+          h2, h3 { margin-top: 30px; margin-bottom: 15px; }
+
+          table {
+            border-collapse: collapse;
+            width: 100%;
+          }
+          
+          /* First table: left-aligned */
+          .left_table th {
+            text-align: left !important;
+            vertical-align: middle !important;
+            color: #00205B !important;  /* header color */
+            background: #f4f6fb; /* keep light background */
+            padding: 6px;
+          }
+          
+          /* Other tables: centered */
+          .center_table th {
+            text-align: center !important;
+            vertical-align: middle !important;
+            color: #00205B !important;  /* header color */
+            background: #f4f6fb; /* keep light background */
+            padding: 6px;
+          }
+          
+          .left_table td {
+            text-align: left !important;
+            vertical-align: middle !important;
+            border: 0.5px solid #ddd;
+            padding: 6px;
+          }
+          
+          .center_table td {
+            text-align: center !important;   /* center all cell contents */
+            vertical-align: middle !important;
+            border: 0.5px solid #ddd;
+            padding: 6px;
+          }
+
+          img { max-width: 100%; display: block; margin: 10px auto; }
+          .logo { text-align:center; margin-bottom:30px; }
         "))
       ),
       tags$body(
-        h1(sprintf("Assessment Report: %s", name)),
-        p(sprintf("Report generated on %s by %s", format(Sys.time(), "%d-%m-%Y"), examiner)),
-        tags$hr(),
-        
-        # 1 Summary
-        h2("1. Summary"),
-        h3("1.1 Descriptive statistics"),
-        p(sprintf("The assessment included %s participants. The average score achieved was %s, with a median of %s. The standard deviation was %s, indicating %s among participants. The skewness of the score distribution is %s, suggesting the distribution is %s.",
-                  participants, avg_score, median_score, sd_score, sd_text, skew, skew_text)),
-        HTML(desc_tab),
-        
-        h3("1.2 Distribution of Achieved Scores"),
-        p(sprintf("The histogram shows that most students achieved scores in the %s range. Any peaks at extreme ends suggest possible ceiling or floor effects that may affect discrimination between students.", difficulty_range)),
-        embed_plot(hist_plot, 7, 4),
-        
-        # 2 Classical Assessment Analysis
-        h2("2. Classical Assessment Analysis"),
-        
-        # 2.1 Assessment Stats
-        h3("2.1 Assessments Statistics"),
-        p("This table displays the key metrics for each overall assessment. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>."),
-        tags$ul(
-          tags$li(HTML("<b>Average P (Difficulty)</b>: Values near 0 indicate very difficult items, values near 1 indicate very easy items. Ideally, items are moderately difficult (0.3–0.8, green) to provide effective discrimination.")),
-          tags$li(HTML("<b>Average RIT and Average RIR (Discrimination)</b>: These values measure how well the assessment between higher and lower scoring participants. Values below 0.2 (red) suggest poor discrimination; 0.2–0.3 (orange) indicate average discrimination; values above 0.3 (green) indicate good discrimination.")),
-          tags$li(HTML("<b>Cronbach's alpha (Internal Consistency)</b>: Values above 0.7 (green) indicate reliable measurement of the intended construct. Lower values suggest inconsistent items or that some items may not contribute effectively to overall reliability."))
-        ),
-        HTML(test_tab),
-        
-        # 2.2 Item Stats
-        h3("2.2 Item Statistics"),
-        p("This table summarizes the key metrics for each individual item. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>."),
-        tags$ul(
-          tags$li(HTML("<b>P (Item Difficulty)</b>: Values near 0 indicate very difficult items, near 1 indicate very easy items. Red = too hard/easy, Green = ideal difficulty.")),
-          tags$li(HTML("<b>RIT (Item-Total Correlation)</b>: Measures correlation with total score. Red = low (<0.2), Orange = average (0.2–0.3), Green = strong (>0.3).")),
-          tags$li(HTML("<b>RIR (Item-Rest Correlation)</b>: Correlation with rest of assessment. Coloring follows RIT logic.")),
-          tags$li(HTML("<b>Alpha-if-deleted</b>: Shows impact on Cronbach's alpha if item removed. Red = improves reliability, Green = reduces reliability."))
-        ),
-        HTML(item_tab),
-        
-        # 2.3 Item Difficulty & Discrimination
-        h3("2.3 Item Difficulty & Discrimination"),
-        p("The figure below plots item difficulty (P-values) against item discrimination (RIT). Items that are difficult and poorly discriminating may need revision, while easy items with high discrimination typically contribute positively to the assessment."),
-        embed_plot(item_plot, 9, 5),
-        
-        # 2.4 Item Correlation Matrix
-        h3("2.4 Item Correlation Matrix"),
-        p("The correlation matrix highlights relationships between items. Strong positive correlations (> 0.6) may indicate redundancy, while very low or negative correlations may suggest misalignment or potential errors. Items with unusual correlations should be reviewed to improve assessment quality."),
-        embed_plot(corr_plot, 11, 11)
+        tags$div(
+          id = "report_container",
+          tags$div(class="logo",
+                   tags$img(src="https://raw.githubusercontent.com/koenderks/CirrusAssessmentAnalysis/refs/heads/main/logo.png", height="80px")
+          ),
+          h1(sprintf("Assessment Report: %s", name)),
+          p(sprintf("Report generated on %s by %s", format(Sys.time(), "%d-%m-%Y"), examiner)),
+          tags$hr(),
+          
+          # 1 Summary
+          h2("1. Summary"),
+          h3("1.1 Descriptive statistics"),
+          p(sprintf("This assessment tested %s participants. They achieved an average score of %s, with a median score of %s. The standard deviation was %s, indicating %s among participants. The skewness of the score distribution is %s, suggesting the distribution is %s.",
+                    participants, avg_score, median_score, sd_score, sd_text, skew, skew_text)),
+          HTML(desc_tab),
+          
+          h3("1.2 Distribution of Achieved Scores"),
+          p(sprintf("The histogram shows the distribution of achieved scores. In this case, it shows that most students achieved scores in the %s range. Any peaks at extreme ends suggest possible ceiling or floor effects that may affect discrimination between students.", difficulty_range)),
+          embed_plot(hist_plot, 7, 4),
+          
+          # 2 Classical Assessment Analysis
+          h2("2. Classical Assessment Analysis"),
+          
+          # 2.1 Assessment Stats
+          h3("2.1 Assessments Statistics"),
+          p(HTML("This table displays the key metrics for each overall assessment. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>.")),
+          tags$ul(
+            tags$li(HTML("<b>Average P (Difficulty)</b>: Values near 0 indicate very difficult items, values near 1 indicate very easy items. Ideally, items are moderately difficult (0.3–0.8, green) to provide effective discrimination.")),
+            tags$li(HTML("<b>Average RIT and RIR (Discrimination)</b>: These values measure how well the assessment between higher and lower scoring participants. Values below 0.2 (red) suggest poor discrimination; 0.2–0.3 (orange) indicate average discrimination; values above 0.3 (green) indicate good discrimination.")),
+            tags$li(HTML("<b>Cronbach's alpha (Internal Consistency)</b>: Values above 0.7 (green) indicate reliable measurement of the intended construct. Lower values suggest inconsistent items or that some items may not contribute effectively to overall reliability."))
+          ),
+          HTML(test_tab),
+          
+          # 2.2 Item Stats
+          h3("2.2 Item Statistics"),
+          p(HTML("This table summarizes the key metrics for each individual item. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>.")),
+          tags$ul(
+            tags$li(HTML("<b>P (Item Difficulty)</b>: Values near 0 indicate very difficult items, near 1 indicate very easy items. Red = too hard/easy, Green = ideal difficulty.")),
+            tags$li(HTML("<b>RIT (Item-Total Correlation)</b>: Measures correlation with total score. Red = low (<0.2), Orange = average (0.2–0.3), Green = strong (>0.3).")),
+            tags$li(HTML("<b>RIR (Item-Rest Correlation)</b>: Correlation with rest of assessment. Coloring follows RIT logic.")),
+            tags$li(HTML("<b>Alpha-if-deleted</b>: Shows impact on Cronbach's alpha if item removed. Red = improves reliability, Green = reduces reliability."))
+          ),
+          HTML(item_tab),
+          
+          # 2.3 Item Difficulty & Discrimination
+          h3("2.3 Item Difficulty & Discrimination"),
+          p("The figure below plots item difficulty (P-values) against item discrimination (RIT). Items that are difficult and poorly discriminating may need revision, while easy items with high discrimination typically contribute positively to the assessment."),
+          embed_plot(item_plot, 9, 5),
+          
+          # 2.4 Item Correlation Matrix
+          h3("2.4 Item Correlation Matrix"),
+          p("The correlation matrix highlights relationships between items. Strong positive correlations (> 0.6) may indicate redundancy, while very low or negative correlations may suggest misalignment or potential errors. Items with unusual correlations should be reviewed to improve assessment quality."),
+          embed_plot(corr_plot, 11, 11)
+        )
       )
     )
   )
@@ -162,8 +212,8 @@ theme_nyenrode <- function() {
     theme(
       plot.background  = element_rect(fill = NA, color = NA),
       panel.background = element_rect(fill = NA, color = NA),
-      axis.text        = element_text(color = "black", size = 12),
-      axis.title       = element_text(color = "black", size = 15, face = "bold"),
+      axis.text        = element_text(color = "black", size = 10),
+      axis.title       = element_text(color = "black", size = 15),
       legend.title     = element_text(color = "black", size = 20),
       legend.text      = element_text(color = "black", size = 20),
       axis.line        = element_blank()
@@ -253,6 +303,8 @@ create_histogram <- function(input, parsed) {
       scale_y_continuous(name = "Frequency", limits = c(0, max(yBreaks)), breaks = yBreaks) +
       geom_segment(y = -Inf, yend = -Inf, x = 0, xend = max(xBreaks)) +
       geom_segment(x = -Inf, xend = -Inf, y = 0, yend = max(yBreaks)) +
+      geom_segment(x = maxScore, xend = maxScore, y = 0, yend = max(yBreaks), linetype = "dashed", color = "firebrick") +
+      annotate(geom = "text", x = maxScore, y = max(yBreaks), label = "Max. score", hjust = 1.2, size = 5, color = "firebrick") +
       theme_nyenrode()
   }
   return(p)
@@ -487,8 +539,8 @@ ui <- fluidPage(
         "Overview",
         uiOutput("dataset_info")
       ),
-      textInput("name", label = "Assessment", placeholder = "e.g., Management accounting - Final Exam"),
-      textInput("name_examiner", label = "Examiner", placeholder = "e.g., Koen Derks"),
+      textInput("name", label = "Assessment", placeholder = "e.g., Management - Final Exam"),
+      textInput("name_examiner", label = "Examiner", placeholder = "e.g., Eric Xaminer"),
       div(
         class = "mt-3",
         actionButton("refresh", "Refresh", class = "btn btn-outline-secondary"),
@@ -657,30 +709,30 @@ server <- function(input, output, session) {
     ) %>%
       formatStyle(
         "Average P",
-        backgroundColor = styleInterval(
+        color = styleInterval(
           c(0.2, 0.8),       # breakpoints
-          c("tomato", "lightgreen", "tomato")  # colors: too hard / ideal / too easy
+          c("tomato", "forestgreen", "tomato")  # colors: too hard / ideal / too easy
         )
       ) %>%
       formatStyle(
         "Average RIT",
-        backgroundColor = styleInterval(
+        color = styleInterval(
           c(0.2, 0.3),                     # low discrimination threshold
-          c("tomato", "orange", "lightgreen")           # red if low, else no color
+          c("tomato", "orange", "forestgreen")           # red if low, else no color
         )
       ) %>%
       formatStyle(
         "Average RIR",
-        backgroundColor = styleInterval(
+        color = styleInterval(
           c(0.2, 0.3),                     # low discrimination threshold
-          c("tomato", "orange", "lightgreen")           # red if low, else no color
+          c("tomato", "orange", "forestgreen")           # red if low, else no color
         )
       ) %>%
       formatStyle(
         "Cronbach's alpha",
-        backgroundColor = styleInterval(
+        color = styleInterval(
           c(0.7),
-          c("tomato", "lightgreen")           # red if low, else no color
+          c("tomato", "forestgreen")           # red if low, else no color
         )
       )
   })
@@ -696,30 +748,30 @@ server <- function(input, output, session) {
     ) %>%
       formatStyle(
         "P",
-        backgroundColor = styleInterval(
+        color = styleInterval(
           c(0.2, 0.8),       # breakpoints
-          c("tomato", "lightgreen", "tomato")  # colors: too hard / ideal / too easy
+          c("tomato", "forestgreen", "tomato")  # colors: too hard / ideal / too easy
         )
       ) %>%
       formatStyle(
         "RIT",
-        backgroundColor = styleInterval(
+        color = styleInterval(
           c(0.2, 0.3),                     # low discrimination threshold
-          c("tomato", "orange", "lightgreen")           # red if low, else no color
+          c("tomato", "orange", "forestgreen")           # red if low, else no color
         )
       ) %>%
       formatStyle(
         "RIR",
-        backgroundColor = styleInterval(
+        color = styleInterval(
           c(0.2, 0.3),                     # low discrimination threshold
-          c("tomato", "orange", "lightgreen")           # red if low, else no color
+          c("tomato", "orange", "forestgreen")           # red if low, else no color
         )
       ) %>%
       formatStyle(
         "Alpha-if-deleted",
-        backgroundColor = styleInterval(
+        color = styleInterval(
           c(test_stats_react()[1, 4]),
-          c("lightgreen", "tomato")           # red if low, else no color
+          c("forestgreen", "tomato")           # red if low, else no color
         )
       )
   })
