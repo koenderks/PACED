@@ -122,9 +122,7 @@ create_histogram <- function(input, parsed) {
 create_test_stats <- function(input, parsed) {
   
   if (is.null(input$file)) {
-    
     tab <- data.frame(P = NA, RIT = NA, RIT = NA, alpha = NA)
-    
   } else {
     
     req(parsed())
