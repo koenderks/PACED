@@ -496,7 +496,7 @@ server <- function(input, output, session) {
       test_name = input$name
     )
   })
-  parsed <- bindCache(parsed, input$file)
+  parsed <- bindCache(parsed, input$file, cache = "session")
   
   output$dataset_info <- renderUI({
     
