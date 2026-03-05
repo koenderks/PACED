@@ -1143,123 +1143,27 @@ server <- function(input, output, session) {
       })
     }
   )
-  output$export <- downloadHandler(
-
-    filename = function() {
-      paste0("assessment_report_", input$name, ".html")
-    },
-
-    content = function(file) {
-
-      report <- build_report_html(
-        input$name,
-        input$name_examiner,
-        descriptives_react(),
-        histogram_react(),
-        test_stats_react(),
-        item_stats_react(),
-        item_plot_react(),
-        corr_plot_react()
-      )
-
-      htmltools::save_html(report, file)
-
-    }
-  )
   # output$export <- downloadHandler(
+  # 
   #   filename = function() {
-  #     paste0("Assessment_Report_", Sys.Date(), ".html")
+  #     paste0("assessment_report_", input$name, ".html")
   #   },
+  # 
   #   content = function(file) {
-  #     
-  #     # Save plots as base64 to embed directly
-  #     plot_to_base64 <- function(plot, width = 800, height = 600) {
-  #       tmp <- tempfile(fileext = ".png")
-  #       ggsave(tmp, plot, width = width/72, height = height/72, dpi = 72)
-  #       data_uri <- paste0("data:image/png;base64,", base64enc::base64encode(tmp))
-  #       unlink(tmp)
-  #       data_uri
-  #     }
-  #     
-  #     hist_uri <- plot_to_base64(histogram_react(), 700, 400)
-  #     item_uri <- plot_to_base64(item_plot_react(), 900, 500)
-  #     corr_uri <- plot_to_base64(corr_plot_react(), 1100, 1100)
-  #     
-  #     # Tables with kable
-  #     desc_tab <- knitr::kable(descriptives_react(), format = "html") |>
-  #       kable_styling(full_width = FALSE, position = "center")
-  #     
-  #     # Color-coded tables for test_stats
-  #     test_tab <- test_stats_react()
-  #     test_tab$`Average P` <- cell_spec(test_tab$`Average P`,"html",
-  #                                       background = ifelse(test_tab$`Average P` < 0.2, "tomato",
-  #                                                           ifelse(test_tab$`Average P` <= 0.8, "lightgreen", "tomato")))
-  #     test_tab$`Average RIT` <- cell_spec(test_tab$`Average RIT`,"html",
-  #                                         background = ifelse(test_tab$`Average RIT` < 0.2, "tomato",
-  #                                                             ifelse(test_tab$`Average RIT` <= 0.3, "orange", "lightgreen")))
-  #     test_tab$`Average RIR` <- cell_spec(test_tab$`Average RIR`,"html",
-  #                                         background = ifelse(test_tab$`Average RIR` < 0.2, "tomato",
-  #                                                             ifelse(test_tab$`Average RIR` <= 0.3, "orange", "lightgreen")))
-  #     test_tab$`Cronbach's alpha` <- cell_spec(test_tab$`Cronbach's alpha`,"html",
-  #                                              background = ifelse(test_tab$`Cronbach's alpha` < 0.7,"tomato","lightgreen"))
-  #     test_tab <- knitr::kable(test_tab, escape = FALSE, format = "html") |> kable_styling(full_width = FALSE, position = "center")
-  #     
-  #     # Color-coded tables for item_stats
-  #     alpha_test <- test_stats_react()$`Cronbach's alpha`[1]
-  #     item_tab <- item_stats_react()
-  #     item_tab$P <- cell_spec(item_tab$P, "html", background = ifelse(item_tab$P < 0.2,"tomato",
-  #                                                                     ifelse(item_tab$P <= 0.8,"lightgreen","tomato")))
-  #     item_tab$RIT <- cell_spec(item_tab$RIT, "html", background = ifelse(item_tab$RIT < 0.2,"tomato",
-  #                                                                         ifelse(item_tab$RIT <= 0.3,"orange","lightgreen")))
-  #     item_tab$RIR <- cell_spec(item_tab$RIR, "html", background = ifelse(item_tab$RIR < 0.2,"tomato",
-  #                                                                         ifelse(item_tab$RIR <= 0.3,"orange","lightgreen")))
-  #     item_tab$`Alpha-if-deleted` <- cell_spec(item_tab$`Alpha-if-deleted`,"html",
-  #                                              background = ifelse(item_tab$`Alpha-if-deleted` > alpha_test,"tomato","lightgreen"))
-  #     item_tab <- knitr::kable(item_tab, escape = FALSE, format = "html") |> kable_styling(full_width = FALSE, position = "center")
-  #     
-  #     # Build HTML string
-  #     html_content <- htmltools::tags$html(
-  #       htmltools::tags$head(
-  #         htmltools::tags$title("Assessment Report"),
-  #         htmltools::tags$style(HTML("
-  #           body {font-family: Arial; margin:40px;}
-  #           h1 {color:#00205B;}
-  #           h2 {margin-top:40px;}
-  #           table {border-collapse: collapse; width:100%;}
-  #           th,td {border:1px solid #ddd; padding:6px;}
-  #           th {background:#f4f6fb;}
-  #           img {max-width:100%; margin-top:10px;}
-  #         "))
-  #       ),
-  #       htmltools::tags$body(
-  #         htmltools::tags$h1(sprintf("Assessment Report: %s", input$name)),
-  #         htmltools::tags$p(sprintf("Report generated on %s by %s", Sys.Date(), input$name_examiner)),
-  #         htmltools::tags$hr(),
-  #         htmltools::tags$h2("1. Summary"),
-  #         htmltools::tags$h3("1.1 Descriptive statistics"),
-  #         htmltools::HTML(sprintf(
-  #           "The assessment included %s participants. The average score achieved was %s, with a median of %s. The standard deviation was %s. Skewness: %s",
-  #           descriptives_react()$Value[1], descriptives_react()$Value[2], descriptives_react()$Value[3],
-  #           descriptives_react()$Value[4], descriptives_react()$Value[5]
-  #         )),
-  #         htmltools::HTML(desc_tab),
-  #         htmltools::tags$h3("1.2 Distribution of Achieved Scores"),
-  #         htmltools::tags$p("Histogram of scores"),
-  #         htmltools::tags$img(src = hist_uri),
-  #         htmltools::tags$h2("2. Classical Assessment Analysis"),
-  #         htmltools::tags$h3("2.1 Assessment Statistics"),
-  #         htmltools::HTML(test_tab),
-  #         htmltools::tags$h3("2.2 Item Statistics"),
-  #         htmltools::HTML(item_tab),
-  #         htmltools::tags$h3("2.3 Item Difficulty & Discrimination"),
-  #         htmltools::tags$img(src = item_uri),
-  #         htmltools::tags$h3("2.4 Item Correlation Matrix"),
-  #         htmltools::tags$img(src = corr_uri)
-  #       )
+  # 
+  #     report <- build_report_html(
+  #       input$name,
+  #       input$name_examiner,
+  #       descriptives_react(),
+  #       histogram_react(),
+  #       test_stats_react(),
+  #       item_stats_react(),
+  #       item_plot_react(),
+  #       corr_plot_react()
   #     )
-  #     
-  #     # Write to file
-  #     writeLines(as.character(html_content), con = file)
+  # 
+  #     htmltools::save_html(report, file)
+  # 
   #   }
   # )
 }
