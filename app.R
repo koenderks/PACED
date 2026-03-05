@@ -10,6 +10,7 @@ library(shinyjs)
 library(knitr)
 library(kableExtra)
 library(htmltools)
+library(base64enc)
 
 # Workaround for Chromium Issue 468227
 downloadButton <- function(...) {
@@ -36,457 +37,113 @@ build_report_html <- function(
   library(base64enc)
   
   # ----- helper: embed plot in HTML -----
-  
   embed_plot <- function(plot, width, height) {
-    
     f <- tempfile(fileext = ".png")
     ggsave(f, plot, width = width, height = height, dpi = 300)
-    
     uri <- base64enc::dataURI(file = f, mime = "image/png")
-    
     tags$img(src = uri)
   }
   
   # ----- Derived interpretations -----
+  participants <- descriptives$Value[descriptives$Statistic == "Number of participants"]
+  avg_score <- descriptives$Value[descriptives$Statistic == "Average achieved score"]
+  median_score <- descriptives$Value[descriptives$Statistic == "Median achieved score"]
+  sd_score <- descriptives$Value[descriptives$Statistic == "Standard deviation"]
+  skew <- as.numeric(descriptives$Value[descriptives$Statistic == "Skewness"])
+  sd_text <- if (as.numeric(sd_score) > 10) "considerable variability" else "relatively consistent performance"
+  skew_text <- if (skew > 0.5) "positively skewed, with a tendency toward lower scores" else if (skew < -0.5) "negatively skewed, with a tendency toward higher scores" else "approximately symmetric"
+  difficulty_range <- if (mean(item_stats$P) > 0.7) "upper" else "middle/lower"
   
-  participants <- descriptives$Value[
-    descriptives$Statistic == "Number of participants"
-  ]
+  # ----- Tables with coloring -----
   
-  avg_score <- descriptives$Value[
-    descriptives$Statistic == "Average achieved score"
-  ]
+  # Descriptives
+  desc_tab <- knitr::kable(descriptives, row.names = FALSE, format = "html") %>%
+    kable_styling(full_width = FALSE, position = "center", bootstrap_options = "striped")
   
-  median_score <- descriptives$Value[
-    descriptives$Statistic == "Median achieved score"
-  ]
-  
-  sd_score <- descriptives$Value[
-    descriptives$Statistic == "Standard deviation"
-  ]
-  
-  skew <- as.numeric(
-    descriptives$Value[descriptives$Statistic == "Skewness"]
-  )
-  
-  sd_text <- if (as.numeric(sd_score) > 10)
-    "considerable variability"
-  else
-    "relatively consistent performance"
-  
-  skew_text <- if (skew > 0.5)
-    "positively skewed, with a tendency toward lower scores"
-  else if (skew < -0.5)
-    "negatively skewed, with a tendency toward higher scores"
-  else
-    "approximately symmetric"
-  
-  difficulty_range <- if (mean(item_stats$P) > 0.7)
-    "upper"
-  else
-    "middle/lower"
-  
-  # ----- Tables -----
-  
-  desc_tab  <- knitr::kable(descriptives, row.names = FALSE, format = "html") |>
-    kable_styling(full_width = FALSE, position = "center")
-  
+  # Test stats
   test_tab <- test_stats
+  test_tab$`Average P` <- cell_spec(test_tab$`Average P`,"html", color="black", background = ifelse(test_tab$`Average P` < 0.2,"tomato",ifelse(test_tab$`Average P` <=0.8,"lightgreen","tomato")))
+  test_tab$`Average RIT` <- cell_spec(test_tab$`Average RIT`,"html", color="black", background = ifelse(test_tab$`Average RIT` < 0.2,"tomato",ifelse(test_tab$`Average RIT` <=0.3,"orange","lightgreen")))
+  test_tab$`Average RIR` <- cell_spec(test_tab$`Average RIR`,"html", color="black", background = ifelse(test_tab$`Average RIR` < 0.2,"tomato",ifelse(test_tab$`Average RIR` <=0.3,"orange","lightgreen")))
+  test_tab$`Cronbach's alpha` <- cell_spec(test_tab$`Cronbach's alpha`,"html", color="black", background = ifelse(test_tab$`Cronbach's alpha` < 0.7,"tomato","lightgreen"))
+  test_tab <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html") %>%
+    kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped","hover"))
   
-  test_tab$`Average P` <- cell_spec(
-    test_tab$`Average P`,
-    "html",
-    background = ifelse(test_tab$`Average P` < 0.2, "tomato",
-                        ifelse(test_tab$`Average P` <= 0.8, "lightgreen", "tomato"))
-  )
-  
-  test_tab$`Average RIT` <- cell_spec(
-    test_tab$`Average RIT`,
-    "html",
-    background = ifelse(test_tab$`Average RIT` < 0.2, "tomato",
-                        ifelse(test_tab$`Average RIT` <= 0.3, "orange", "lightgreen"))
-  )
-  
-  test_tab$`Average RIR` <- cell_spec(
-    test_tab$`Average RIR`,
-    "html",
-    background = ifelse(test_tab$`Average RIR` < 0.2, "tomato",
-                        ifelse(test_tab$`Average RIR` <= 0.3, "orange", "lightgreen"))
-  )
-  
-  test_tab$`Cronbach's alpha` <- cell_spec(
-    test_tab$`Cronbach's alpha`,
-    "html",
-    background = ifelse(test_tab$`Cronbach's alpha` < 0.7,
-                        "tomato",
-                        "lightgreen")
-  )
-  
-  test_tab  <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html") |>
-    kable_styling(full_width = FALSE, position = "center")
-  
+  # Item stats
   alpha_test <- test_stats$`Cronbach's alpha`[1]
-  
   item_tab <- item_stats
+  item_tab$P <- cell_spec(item_tab$P,"html", color="black", background = ifelse(item_tab$P < 0.2,"tomato",ifelse(item_tab$P <=0.8,"lightgreen","tomato")))
+  item_tab$RIT <- cell_spec(item_tab$RIT,"html", color="black", background = ifelse(item_tab$RIT < 0.2,"tomato",ifelse(item_tab$RIT <=0.3,"orange","lightgreen")))
+  item_tab$RIR <- cell_spec(item_tab$RIR,"html", color="black", background = ifelse(item_tab$RIR < 0.2,"tomato",ifelse(item_tab$RIR <=0.3,"orange","lightgreen")))
+  item_tab$`Alpha-if-deleted` <- cell_spec(item_tab$`Alpha-if-deleted`,"html", color="black", background = ifelse(item_tab$`Alpha-if-deleted` < alpha_test,"lightgreen","tomato"))
+  item_tab <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html") %>%
+    kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped","hover"))
   
-  item_tab$P <- cell_spec(
-    item_tab$P,
-    "html",
-    background = ifelse(item_tab$P < 0.2, "tomato",
-                        ifelse(item_tab$P <= 0.8, "lightgreen", "tomato"))
-  )
-  
-  item_tab$RIT <- cell_spec(
-    item_tab$RIT,
-    "html",
-    background = ifelse(item_tab$RIT < 0.2, "tomato",
-                        ifelse(item_tab$RIT <= 0.3, "orange", "lightgreen"))
-  )
-  
-  item_tab$RIR <- cell_spec(
-    item_tab$RIR,
-    "html",
-    background = ifelse(item_tab$RIR < 0.2, "tomato",
-                        ifelse(item_tab$RIR <= 0.3, "orange", "lightgreen"))
-  )
-  
-  item_tab$`Alpha-if-deleted` <- cell_spec(
-    item_tab$`Alpha-if-deleted`,
-    "html",
-    background = ifelse(item_tab$`Alpha-if-deleted` > alpha_test,
-                        "tomato",
-                        "lightgreen")
-  )
-  
-  item_tab  <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html") |>
-    kable_styling(full_width = FALSE, position = "center")
-  
-  # ----- HTML document -----
-  
+  # ----- Build HTML -----
   tagList(
-    
     tags$html(
-      
       tags$head(
         tags$title("Assessment Report"),
         tags$style(HTML("
           body {font-family: Arial; margin:40px;}
           h1 {color:#00205B;}
           h2 {margin-top:40px;}
+          h3 {margin-top:30px;}
           table {border-collapse: collapse; width:100%;}
           th,td {border:1px solid #ddd; padding:6px;}
           th {background:#f4f6fb;}
           img {max-width:100%; margin-top:10px;}
         "))
       ),
-      
       tags$body(
-        
         h1(sprintf("Assessment Report: %s", name)),
-        
-        p(sprintf(
-          "Report generated on %s by %s",
-          format(Sys.time(), "%d-%m-%Y"),
-          examiner
-        )),
-        
+        p(sprintf("Report generated on %s by %s", format(Sys.time(), "%d-%m-%Y"), examiner)),
         tags$hr(),
         
+        # 1 Summary
         h2("1. Summary"),
-        
         h3("1.1 Descriptive statistics"),
-        
-        p(sprintf(
-          paste(
-            "The assessment included %s participants.",
-            "The average score achieved was %s,",
-            "with a median of %s.",
-            "The standard deviation was %s,",
-            "indicating %s among participants.",
-            "The skewness of the score distribution is %s,",
-            "suggesting the distribution is %s."
-          ),
-          participants,
-          avg_score,
-          median_score,
-          sd_score,
-          sd_text,
-          skew,
-          skew_text
-        )),
-        
+        p(sprintf("The assessment included %s participants. The average score achieved was %s, with a median of %s. The standard deviation was %s, indicating %s among participants. The skewness of the score distribution is %s, suggesting the distribution is %s.",
+                  participants, avg_score, median_score, sd_score, sd_text, skew, skew_text)),
         HTML(desc_tab),
         
         h3("1.2 Distribution of Achieved Scores"),
-        
-        p(sprintf(
-          paste(
-            "The histogram shows that most students",
-            "achieved scores in the %s range.",
-            "Peaks at extremes may indicate ceiling or floor effects."
-          ),
-          difficulty_range
-        )),
-        
+        p(sprintf("The histogram shows that most students achieved scores in the %s range. Any peaks at extreme ends suggest possible ceiling or floor effects that may affect discrimination between students.", difficulty_range)),
         embed_plot(hist_plot, 7, 4),
         
+        # 2 Classical Assessment Analysis
         h2("2. Classical Assessment Analysis"),
         
-        h3("2.1 Assessment Statistics"),
-        
-        p("Average P indicates item difficulty. RIT and RIR measure discrimination. Cronbach's alpha indicates internal consistency."),
-        
+        # 2.1 Assessment Stats
+        h3("2.1 Assessments Statistics"),
+        p("This table displays the key metrics for each overall assessment. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>."),
+        tags$ul(
+          tags$li(HTML("<b>Average P (Difficulty)</b>: Values near 0 indicate very difficult items, values near 1 indicate very easy items. Ideally, items are moderately difficult (0.3–0.8, green) to provide effective discrimination.")),
+          tags$li(HTML("<b>Average RIT and Average RIR (Discrimination)</b>: These values measure how well the assessment between higher and lower scoring participants. Values below 0.2 (red) suggest poor discrimination; 0.2–0.3 (orange) indicate average discrimination; values above 0.3 (green) indicate good discrimination.")),
+          tags$li(HTML("<b>Cronbach's alpha (Internal Consistency)</b>: Values above 0.7 (green) indicate reliable measurement of the intended construct. Lower values suggest inconsistent items or that some items may not contribute effectively to overall reliability."))
+        ),
         HTML(test_tab),
         
+        # 2.2 Item Stats
         h3("2.2 Item Statistics"),
-        
+        p("This table summarizes the key metrics for each individual item. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>."),
+        tags$ul(
+          tags$li(HTML("<b>P (Item Difficulty)</b>: Values near 0 indicate very difficult items, near 1 indicate very easy items. Red = too hard/easy, Green = ideal difficulty.")),
+          tags$li(HTML("<b>RIT (Item-Total Correlation)</b>: Measures correlation with total score. Red = low (<0.2), Orange = average (0.2–0.3), Green = strong (>0.3).")),
+          tags$li(HTML("<b>RIR (Item-Rest Correlation)</b>: Correlation with rest of assessment. Coloring follows RIT logic.")),
+          tags$li(HTML("<b>Alpha-if-deleted</b>: Shows impact on Cronbach's alpha if item removed. Red = improves reliability, Green = reduces reliability."))
+        ),
         HTML(item_tab),
         
+        # 2.3 Item Difficulty & Discrimination
         h3("2.3 Item Difficulty & Discrimination"),
-        
+        p("The figure below plots item difficulty (P-values) against item discrimination (RIT). Items that are difficult and poorly discriminating may need revision, while easy items with high discrimination typically contribute positively to the assessment."),
         embed_plot(item_plot, 9, 5),
         
+        # 2.4 Item Correlation Matrix
         h3("2.4 Item Correlation Matrix"),
-        
+        p("The correlation matrix highlights relationships between items. Strong positive correlations (> 0.6) may indicate redundancy, while very low or negative correlations may suggest misalignment or potential errors. Items with unusual correlations should be reviewed to improve assessment quality."),
         embed_plot(corr_plot, 11, 11)
-        
-      )
-    )
-  )
-}
-
-build_report_html <- function(
-    name,
-    examiner,
-    descriptives,
-    hist_plot,
-    test_stats,
-    item_stats,
-    item_plot,
-    corr_plot
-) {
-  
-  library(htmltools)
-  library(knitr)
-  library(kableExtra)
-  library(ggplot2)
-  library(base64enc)
-  
-  # ----- helper: embed plot in HTML -----
-  
-  embed_plot <- function(plot, width, height) {
-    
-    f <- tempfile(fileext = ".png")
-    ggsave(f, plot, width = width, height = height, dpi = 300)
-    
-    uri <- base64enc::dataURI(file = f, mime = "image/png")
-    
-    tags$img(src = uri)
-  }
-  
-  # ----- Derived interpretations -----
-  
-  participants <- descriptives$Value[
-    descriptives$Statistic == "Number of participants"
-  ]
-  
-  avg_score <- descriptives$Value[
-    descriptives$Statistic == "Average achieved score"
-  ]
-  
-  median_score <- descriptives$Value[
-    descriptives$Statistic == "Median achieved score"
-  ]
-  
-  sd_score <- descriptives$Value[
-    descriptives$Statistic == "Standard deviation"
-  ]
-  
-  skew <- as.numeric(
-    descriptives$Value[descriptives$Statistic == "Skewness"]
-  )
-  
-  sd_text <- if (as.numeric(sd_score) > 10)
-    "considerable variability"
-  else
-    "relatively consistent performance"
-  
-  skew_text <- if (skew > 0.5)
-    "positively skewed, with a tendency toward lower scores"
-  else if (skew < -0.5)
-    "negatively skewed, with a tendency toward higher scores"
-  else
-    "approximately symmetric"
-  
-  difficulty_range <- if (mean(item_stats$P) > 0.7)
-    "upper"
-  else
-    "middle/lower"
-  
-  # ----- Tables -----
-  
-  desc_tab  <- knitr::kable(descriptives, row.names = FALSE, format = "html") |>
-    kable_styling(full_width = FALSE, position = "center")
-  
-  test_tab <- test_stats
-  
-  test_tab$`Average P` <- cell_spec(
-    test_tab$`Average P`,
-    "html",
-    background = ifelse(test_tab$`Average P` < 0.2, "tomato",
-                        ifelse(test_tab$`Average P` <= 0.8, "lightgreen", "tomato"))
-  )
-  
-  test_tab$`Average RIT` <- cell_spec(
-    test_tab$`Average RIT`,
-    "html",
-    background = ifelse(test_tab$`Average RIT` < 0.2, "tomato",
-                        ifelse(test_tab$`Average RIT` <= 0.3, "orange", "lightgreen"))
-  )
-  
-  test_tab$`Average RIR` <- cell_spec(
-    test_tab$`Average RIR`,
-    "html",
-    background = ifelse(test_tab$`Average RIR` < 0.2, "tomato",
-                        ifelse(test_tab$`Average RIR` <= 0.3, "orange", "lightgreen"))
-  )
-  
-  test_tab$`Cronbach's alpha` <- cell_spec(
-    test_tab$`Cronbach's alpha`,
-    "html",
-    background = ifelse(test_tab$`Cronbach's alpha` < 0.7,
-                        "tomato",
-                        "lightgreen")
-  )
-  
-  test_tab  <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html") |>
-    kable_styling(full_width = FALSE, position = "center")
-  
-  alpha_test <- test_stats$`Cronbach's alpha`[1]
-  
-  item_tab <- item_stats
-  
-  item_tab$P <- cell_spec(
-    item_tab$P,
-    "html",
-    background = ifelse(item_tab$P < 0.2, "tomato",
-                        ifelse(item_tab$P <= 0.8, "lightgreen", "tomato"))
-  )
-  
-  item_tab$RIT <- cell_spec(
-    item_tab$RIT,
-    "html",
-    background = ifelse(item_tab$RIT < 0.2, "tomato",
-                        ifelse(item_tab$RIT <= 0.3, "orange", "lightgreen"))
-  )
-  
-  item_tab$RIR <- cell_spec(
-    item_tab$RIR,
-    "html",
-    background = ifelse(item_tab$RIR < 0.2, "tomato",
-                        ifelse(item_tab$RIR <= 0.3, "orange", "lightgreen"))
-  )
-  
-  item_tab$`Alpha-if-deleted` <- cell_spec(
-    item_tab$`Alpha-if-deleted`,
-    "html",
-    background = ifelse(item_tab$`Alpha-if-deleted` > alpha_test,
-                        "tomato",
-                        "lightgreen")
-  )
-  
-  item_tab  <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html") |>
-    kable_styling(full_width = FALSE, position = "center")
-  
-  # ----- HTML document -----
-  
-  tagList(
-    
-    tags$html(
-      
-      tags$head(
-        tags$title("Assessment Report"),
-        tags$style(HTML("
-          body {font-family: Arial; margin:40px;}
-          h1 {color:#00205B;}
-          h2 {margin-top:40px;}
-          table {border-collapse: collapse; width:100%;}
-          th,td {border:1px solid #ddd; padding:6px;}
-          th {background:#f4f6fb;}
-          img {max-width:100%; margin-top:10px;}
-        "))
-      ),
-      
-      tags$body(
-        
-        h1(sprintf("Assessment Report: %s", name)),
-        
-        p(sprintf(
-          "Report generated on %s by %s",
-          format(Sys.time(), "%d-%m-%Y"),
-          examiner
-        )),
-        
-        tags$hr(),
-        
-        h2("1. Summary"),
-        
-        h3("1.1 Descriptive statistics"),
-        
-        p(sprintf(
-          paste(
-            "The assessment included %s participants.",
-            "The average score achieved was %s,",
-            "with a median of %s.",
-            "The standard deviation was %s,",
-            "indicating %s among participants.",
-            "The skewness of the score distribution is %s,",
-            "suggesting the distribution is %s."
-          ),
-          participants,
-          avg_score,
-          median_score,
-          sd_score,
-          sd_text,
-          skew,
-          skew_text
-        )),
-        
-        HTML(desc_tab),
-        
-        h3("1.2 Distribution of Achieved Scores"),
-        
-        p(sprintf(
-          paste(
-            "The histogram shows that most students",
-            "achieved scores in the %s range.",
-            "Peaks at extremes may indicate ceiling or floor effects."
-          ),
-          difficulty_range
-        )),
-        
-        embed_plot(hist_plot, 7, 4),
-        
-        h2("2. Classical Assessment Analysis"),
-        
-        h3("2.1 Assessment Statistics"),
-        
-        p("Average P indicates item difficulty. RIT and RIR measure discrimination. Cronbach's alpha indicates internal consistency."),
-        
-        HTML(test_tab),
-        
-        h3("2.2 Item Statistics"),
-        
-        HTML(item_tab),
-        
-        h3("2.3 Item Difficulty & Discrimination"),
-        
-        embed_plot(item_plot, 9, 5),
-        
-        h3("2.4 Item Correlation Matrix"),
-        
-        embed_plot(corr_plot, 11, 11)
-        
       )
     )
   )
@@ -533,7 +190,7 @@ section_card <- function(title, ..., subtitle = NULL, full_width = TRUE) {
 }
 
 # ---------------------------
-# Content builders (your logic)
+# Content builders
 # ---------------------------
 create_descriptives_table <- function(input, parsed) {
   # If no file uploaded yet -> empty table
@@ -602,49 +259,36 @@ create_histogram <- function(input, parsed) {
 }
 
 create_test_stats <- function(input, parsed) {
-  
   if (is.null(input$file)) {
     tab <- data.frame(P = NA, RIT = NA, RIR = NA, alpha = NA)
   } else {
-    
     req(parsed())
-    
     d <- parsed()$data
     qm <- parsed()$maxPoints
     digits <- parsed()$digits
-    
     # Item metrics
     P <- colMeans(d) / qm
-    
-    RIT <- sapply(d, function(x)
-      cor(x, rowSums(d), use = "pairwise.complete.obs"))
-    
+    RIT <- sapply(d, function(x) cor(x, rowSums(d), use = "pairwise.complete.obs"))
     RIR <- sapply(seq_along(d), function(j) {
       x <- d[[j]]
       cor(x, rowSums(d) - x, use = "pairwise.complete.obs")
     })
-    
     # Cronbach alpha
     alpha <- psych::alpha(d)$total$raw_alpha
-    
     tab <- round(data.frame(P = mean(P), RIT = mean(RIT), RIR = mean(RIR), alpha = alpha), digits)
   }
   colnames(tab) <- c("Average P", "Average RIT", "Average RIR", "Cronbach's alpha")
-  
   return(tab)
 }
 
 create_item_stats <- function(input, parsed) {
   if (is.null(input$file)) {
-    tab <- data.frame(
-      item = NA, mean = NA, sd = NA, P = NA, RIT = NA, RIR = NA, alpha_when_dropped = NA
-    )
+    tab <- data.frame(item = NA, mean = NA, sd = NA, P = NA, RIT = NA, RIR = NA, alpha_when_dropped = NA)
   } else {
     req(parsed())
     d <- parsed()$data
     qm <- parsed()$maxPoints
     digits <- parsed()$digits
-    
     total_cronbach_alpha <- function(data) {
       data <- na.omit(data)
       k <- ncol(data)
@@ -654,12 +298,10 @@ create_item_stats <- function(input, parsed) {
       if (isTRUE(all.equal(total_var, 0))) return(NA)
       (k / (k - 1)) * (1 - sum(item_vars) / total_var)
     }
-    
     item_total_cor <- function(data) {
       tot <- rowSums(data)
       sapply(data, function(x) cor(x, tot, use = "pairwise.complete.obs"))
     }
-    
     item_rest_cor <- function(data) {
       tot <- rowSums(data)
       sapply(seq_along(data), function(j) {
@@ -667,13 +309,11 @@ create_item_stats <- function(input, parsed) {
         cor(x, tot - x, use = "pairwise.complete.obs")
       })
     }
-    
     RIT <- item_total_cor(d)
     RIR <- item_rest_cor(d)
     alpha_drop <- sapply(seq_along(d), function(j) {
       total_cronbach_alpha(d[, -j, drop = FALSE])
     })
-    
     tab <- data.frame(
       item = colnames(d),
       mean = round(colMeans(d), digits),
@@ -685,7 +325,7 @@ create_item_stats <- function(input, parsed) {
     )
   }
   colnames(tab) <- c("Item (Cirrus ID)", "Mean", "SD", "P", "RIT", "RIR", "Alpha-if-deleted")
-  tab
+  return(tab)
 }
 
 create_item_plot <- function(input, parsed) {
@@ -701,37 +341,25 @@ create_item_plot <- function(input, parsed) {
         axis.text = element_blank()
       )
   } else {
-  req(parsed())
-  d <- parsed()$data
-  qm <- parsed()$maxPoints
-  digits <- parsed()$digits
-  
-  RIT <- sapply(d, function(x) cor(x, rowSums(d), use = "pairwise.complete.obs"))
-  Pval <- colMeans(d) / qm
-  
-  df <- data.frame(
-    item = factor(names(Pval), levels = names(Pval)[order(Pval)]),
-    P = Pval,
-    RIT = RIT
-  )
-  
-  df_long <- reshape(df,
-                     varying = list(c("P", "RIT")), v.names = "value",
-                     timevar = "metric", times = c("P", "RIT"),
-                     direction = "long"
-  )
-  
-  yBreaks <- pretty(c(0, 1, df_long$value), min.n = 4)
-  p <- ggplot(df_long, aes(x = item, y = value, fill = metric)) +
-    geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
-    scale_fill_manual(name = NULL, values = c(nyenrode_gold, nyenrode_blue2), labels = c("P (Difficulty)", "RIT (Discrimination)")) +
-    scale_y_continuous(name = NULL, limits = c(0, 1), breaks = yBreaks) +
-    scale_x_discrete(name = "Item (Cirrus ID)") +
-    geom_segment(x = -Inf, xend = -Inf, y = min(yBreaks), yend = max(yBreaks)) +
-    geom_segment(y = -Inf, yend = -Inf, x = 1, xend = ncol(d)) +
-    theme_nyenrode() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          legend.position = "top")
+    req(parsed())
+    d <- parsed()$data
+    qm <- parsed()$maxPoints
+    digits <- parsed()$digits
+    RIT <- sapply(d, function(x) cor(x, rowSums(d), use = "pairwise.complete.obs"))
+    Pval <- colMeans(d) / qm
+    df <- data.frame(item = factor(names(Pval), levels = names(Pval)[order(Pval)]), P = Pval, RIT = RIT)
+    df_long <- reshape(df, varying = list(c("P", "RIT")), v.names = "value", timevar = "metric", times = c("P", "RIT"), direction = "long")
+    yBreaks <- pretty(c(0, 1, df_long$value), min.n = 4)
+    p <- ggplot(df_long, aes(x = item, y = value, fill = metric)) +
+      geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
+      scale_fill_manual(name = NULL, values = c(nyenrode_gold, nyenrode_blue2), labels = c("P (Difficulty)", "RIT (Discrimination)")) +
+      scale_y_continuous(name = NULL, limits = c(0, 1), breaks = yBreaks) +
+      scale_x_discrete(name = "Item (Cirrus ID)") +
+      geom_segment(x = -Inf, xend = -Inf, y = min(yBreaks), yend = max(yBreaks)) +
+      geom_segment(y = -Inf, yend = -Inf, x = 1, xend = ncol(d)) +
+      theme_nyenrode() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "top")
   }
   return(p)
 }
@@ -745,31 +373,28 @@ create_corr_plot <- function(input, parsed) {
       geom_segment(y = -Inf, yend = -Inf, x = 0, xend = 1) +
       geom_segment(x = -Inf, xend = -Inf, y = 0, yend = 1) +
       theme_nyenrode() +
-      theme(
-        axis.text = element_blank()
-      )
+      theme(axis.text = element_blank())
   } else {
-  req(parsed())
-  d <- parsed()$data
-  cor_mat <- cor(d, use = "pairwise.complete.obs")
-  diag(cor_mat) <- NA
-  cor_df <- as.data.frame(as.table(cor_mat))
-  colnames(cor_df) <- c("Var1", "Var2", "Correlation")
-  
-  xBreaks <- unique(cor_df$Var1)
-  yBreaks <- unique(cor_df$Var2)
-  col_breaks <- pretty(c(-1, 1), min.n = 5)
-  p <- ggplot(cor_df, aes(x = Var1, y = Var2, fill = Correlation)) + 
-    geom_tile(color = "black") +
-    scale_fill_gradient2(name = NULL, low = "firebrick", mid = "white", high = "forestgreen", na.value = "black", midpoint = 0, limits = c(-1, 1), breaks = col_breaks) + 
-    scale_x_discrete(name = "Item (Cirrus ID)", breaks = xBreaks) +
-    scale_y_discrete(name = "Item (Cirrus ID)", breaks = yBreaks) + 
-    geom_segment(x = -Inf, xend = -Inf, y = 0.5, yend = length(yBreaks) + 0.5) +
-    geom_segment(y = -Inf, yend = -Inf, x = 0.5, xend = length(xBreaks) + 0.5) +
-    theme_nyenrode() + 
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          legend.position = "top",
-          legend.key.width  = unit(4, "cm"))
+    req(parsed())
+    d <- parsed()$data
+    cor_mat <- cor(d, use = "pairwise.complete.obs")
+    diag(cor_mat) <- NA
+    cor_df <- as.data.frame(as.table(cor_mat))
+    colnames(cor_df) <- c("Var1", "Var2", "Correlation")
+    xBreaks <- unique(cor_df$Var1)
+    yBreaks <- unique(cor_df$Var2)
+    col_breaks <- pretty(c(-1, 1), min.n = 5)
+    p <- ggplot(cor_df, aes(x = Var1, y = Var2, fill = Correlation)) + 
+      geom_tile(color = "black") +
+      scale_fill_gradient2(name = NULL, low = "firebrick", mid = "white", high = "forestgreen", na.value = "black", midpoint = 0, limits = c(-1, 1), breaks = col_breaks) + 
+      scale_x_discrete(name = "Item (Cirrus ID)", breaks = xBreaks) +
+      scale_y_discrete(name = "Item (Cirrus ID)", breaks = yBreaks) + 
+      geom_segment(x = -Inf, xend = -Inf, y = 0.5, yend = length(yBreaks) + 0.5) +
+      geom_segment(y = -Inf, yend = -Inf, x = 0.5, xend = length(xBreaks) + 0.5) +
+      theme_nyenrode() + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "top",
+            legend.key.width  = unit(4, "cm"))
   }
   return(p)
 }
@@ -912,7 +537,7 @@ ui <- fluidPage(
           section_card(
             "2.4 Item Correlation Matrix",
             div(style = "width: 100%; margin: 0 auto;",
-              withSpinner(plotOutput("corr_plot", width = "100%", height = "1000px"), type = 4, color = nyenrode_blue)
+                withSpinner(plotOutput("corr_plot", width = "100%", height = "1000px"), type = 4, color = nyenrode_blue)
             )
           )
         )
@@ -1112,60 +737,31 @@ server <- function(input, output, session) {
     filename = function() paste0("assessment_report_", input$name, ".html"),
     content = function(file) {
       withProgress(message = "Generating report...", value = 0, {
-
+        
         # Step 1: Copy the Rmd template
         incProgress(0.3, detail = "Copying template...")
-        tempReport <- file.path(tempdir(), "report.Rmd")
-        download.file(url = "https://raw.githubusercontent.com/koenderks/CirrusAssessmentAnalysis/refs/heads/main/report.Rmd", destfile = tempReport)
-        #file.copy("report.Rmd", tempReport, overwrite = TRUE)
-
+        
+        report <- build_report_html(
+          input$name,
+          input$name_examiner,
+          descriptives_react(),
+          histogram_react(),
+          test_stats_react(),
+          item_stats_react(),
+          item_plot_react(),
+          corr_plot_react()
+        )
+        
         # Step 2: Render HTML
         incProgress(0.3, detail = "Rendering HTML...")
-        rmarkdown::render(
-          input = tempReport,
-          output_file = file,
-          params = list(
-            name          = input$name,
-            name_examiner = input$name_examiner,
-            descriptives  = descriptives_react(),
-            hist_plot     = histogram_react(),
-            test_stats    = test_stats_react(),
-            item_stats    = item_stats_react(),
-            item_plot     = item_plot_react(),
-            corr_plot     = corr_plot_react()
-          ),
-          envir = new.env(parent = globalenv()),
-          quiet = TRUE
-        )
-
+        
+        htmltools::save_html(report, file)
+        
         # Step 4: Finish
         incProgress(1, detail = "Done!")
       })
     }
   )
-  # output$export <- downloadHandler(
-  # 
-  #   filename = function() {
-  #     paste0("assessment_report_", input$name, ".html")
-  #   },
-  # 
-  #   content = function(file) {
-  # 
-  #     report <- build_report_html(
-  #       input$name,
-  #       input$name_examiner,
-  #       descriptives_react(),
-  #       histogram_react(),
-  #       test_stats_react(),
-  #       item_stats_react(),
-  #       item_plot_react(),
-  #       corr_plot_react()
-  #     )
-  # 
-  #     htmltools::save_html(report, file)
-  # 
-  #   }
-  # )
 }
 
 shinyApp(ui, server)
