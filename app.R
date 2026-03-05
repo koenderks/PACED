@@ -631,19 +631,16 @@ server <- function(input, output, session) {
     content = function(file) {
       withProgress(message = "Generating report...", value = 0, {
         
-        # Step 1: Download the Rmd template from GitHub
-        incProgress(0.3, detail = "Fetching template...")
+        # Step 1: Copy the Rmd template
+        incProgress(0.3, detail = "Copying template...")
         tempReport <- file.path(tempdir(), "report.Rmd")
-        download.file(
-          url = "https://raw.githubusercontent.com/koenderks/CirrusAssessmentAnalysis/main/report.Rmd",
-          destfile = tempReport,
-          mode = "wb"  # binary mode is safe for Windows
-        )
+        download.file(url = "https://raw.githubusercontent.com/koenderks/CirrusAssessmentAnalysis/refs/heads/main/report.Rmd", destfile = tempReport)
+        #file.copy("report.Rmd", tempReport, overwrite = TRUE)
         
         # Step 2: Render HTML
         incProgress(0.3, detail = "Rendering HTML...")
         rmarkdown::render(
-          tempReport,
+          input = tempReport,
           output_file = file,
           params = list(
             name          = input$name,
