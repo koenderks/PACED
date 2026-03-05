@@ -9,6 +9,7 @@ library(shinycssloaders)
 library(shinyjs)
 library(knitr)
 library(kableExtra)
+library(curl)
 
 # ---------------------------
 # Brand colors & ggplot theme
