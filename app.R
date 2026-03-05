@@ -22,248 +22,23 @@ build_report_html <- function(
     corr_plot
 ) {
   
-  # ---- Derived values ----
-  
-  participants <- descriptives$Value[
-    descriptives$Statistic == "Number of participants"
-  ]
-  
-  avg_score <- descriptives$Value[
-    descriptives$Statistic == "Average achieved score"
-  ]
-  
-  median_score <- descriptives$Value[
-    descriptives$Statistic == "Median achieved score"
-  ]
-  
-  sd_score <- as.numeric(
-    descriptives$Value[descriptives$Statistic == "Standard deviation"]
-  )
-  
-  skew <- as.numeric(
-    descriptives$Value[descriptives$Statistic == "Skewness"]
-  )
-  
-  sd_text <- if (sd_score > 10)
-    "considerable variability"
-  else
-    "relatively consistent performance"
-  
-  skew_text <- if (skew > 0.5)
-    "positively skewed, with a tendency toward lower scores"
-  else if (skew < -0.5)
-    "negatively skewed, with a tendency toward higher scores"
-  else
-    "approximately symmetric"
-  
-  difficulty_range <- if (mean(item_stats$P) > 0.7)
-    "upper"
-  else
-    "middle/lower"
-  
-  # ---- Save plots ----
-  
-  hist_file <- tempfile(fileext = ".png")
-  item_file <- tempfile(fileext = ".png")
-  corr_file <- tempfile(fileext = ".png")
-  
-  ggsave(hist_file, hist_plot, width = 7, height = 4, units = "cm", dpi = 500)
-  ggsave(item_file, item_plot, width = 9, height = 5, dpi = 300)
-  ggsave(corr_file, corr_plot, width = 11, height = 11, dpi = 300)
-  
-  # ---- Descriptive table ----
-  
-  desc_tab <- kable(descriptives, row.names = FALSE, format = "html") |>
-    kable_styling(
-      full_width = FALSE,
-      position = "center"
-    )
-  
-  # ---- Assessment statistics table ----
-  
-  test_tab <- test_stats
-  
-  test_tab$`Average P` <- cell_spec(
-    test_tab$`Average P`,
-    "html",
-    background = ifelse(test_tab$`Average P` < 0.2, "tomato",
-                        ifelse(test_tab$`Average P` <= 0.8, "lightgreen", "tomato"))
-  )
-  
-  test_tab$`Average RIT` <- cell_spec(
-    test_tab$`Average RIT`,
-    "html",
-    background = ifelse(test_tab$`Average RIT` < 0.2, "tomato",
-                        ifelse(test_tab$`Average RIT` <= 0.3, "orange", "lightgreen"))
-  )
-  
-  test_tab$`Average RIR` <- cell_spec(
-    test_tab$`Average RIR`,
-    "html",
-    background = ifelse(test_tab$`Average RIR` < 0.2, "tomato",
-                        ifelse(test_tab$`Average RIR` <= 0.3, "orange", "lightgreen"))
-  )
-  
-  test_tab$`Cronbach's alpha` <- cell_spec(
-    test_tab$`Cronbach's alpha`,
-    "html",
-    background = ifelse(test_tab$`Cronbach's alpha` < 0.7,
-                        "tomato",
-                        "lightgreen")
-  )
-  
-  test_tab <- kable(test_tab, escape = FALSE, format = "html") |>
-    kable_styling(
-      bootstrap_options = c("striped","hover"),
-      full_width = FALSE,
-      position = "center"
-    )
-  
-  # ---- Item statistics table ----
-  
-  alpha_test <- test_stats$`Cronbach's alpha`[1]
-  
-  item_tab <- item_stats
-  
-  item_tab$P <- cell_spec(
-    item_tab$P,
-    "html",
-    background = ifelse(item_tab$P < 0.2, "tomato",
-                        ifelse(item_tab$P <= 0.8, "lightgreen", "tomato"))
-  )
-  
-  item_tab$RIT <- cell_spec(
-    item_tab$RIT,
-    "html",
-    background = ifelse(item_tab$RIT < 0.2, "tomato",
-                        ifelse(item_tab$RIT <= 0.3, "orange", "lightgreen"))
-  )
-  
-  item_tab$RIR <- cell_spec(
-    item_tab$RIR,
-    "html",
-    background = ifelse(item_tab$RIR < 0.2, "tomato",
-                        ifelse(item_tab$RIR <= 0.3, "orange", "lightgreen"))
-  )
-  
-  item_tab$`Alpha-if-deleted` <- cell_spec(
-    item_tab$`Alpha-if-deleted`,
-    "html",
-    background = ifelse(item_tab$`Alpha-if-deleted` > alpha_test,
-                        "tomato",
-                        "lightgreen")
-  )
-  
-  item_tab <- kable(item_tab, escape = FALSE, format = "html") |>
-    kable_styling(
-      bootstrap_options = c("striped","hover"),
-      full_width = FALSE,
-      position = "center"
-    )
-  
-  # ---- HTML ----
-  
-  tagList(
-    
-    tags$html(
-      
-      tags$head(
-        
-        tags$title("Assessment Report"),
-        
-        tags$style(HTML("
-        body {font-family: Arial; margin:40px;}
-        h1 {color:#00205B;}
-        h2 {margin-top:40px;}
-        h3 {margin-top:25px;}
-        img {display:block; margin-left:auto; margin-right:auto;}
-        "))
-      ),
-      
-      tags$body(
-        
-        h1(sprintf("Assessment Report: %s", name)),
-        
-        p(sprintf(
-          "Report generated on %s by %s",
-          format(Sys.time(), "%d-%m-%Y"),
-          examiner
-        )),
-        
-        tags$hr(),
-        
-        h2("1. Summary"),
-        
-        h3("1.1 Descriptive statistics"),
-        
-        p(sprintf(
-          paste(
-            "The assessment included %s participants.",
-            "The average score achieved was %s, with a median of %s.",
-            "The standard deviation was %s, indicating %s among participants.",
-            "The skewness of the score distribution is %s, suggesting the distribution is %s."
-          ),
-          participants,
-          avg_score,
-          median_score,
-          sd_score,
-          sd_text,
-          skew,
-          skew_text
-        )),
-        
-        HTML(desc_tab),
-        
-        h3("1.2 Distribution of Achieved Scores"),
-        
-        p(sprintf(
-          paste(
-            "The histogram shows that most students achieved scores in the %s range.",
-            "Any peaks at extreme ends suggest possible ceiling or floor effects."
-          ),
-          difficulty_range
-        )),
-        
-        img(src = hist_file),
-        
-        h2("2. Classical Assessment Analysis"),
-        
-        h3("2.1 Assessment Statistics"),
-        
-        p("This table displays the key metrics for each overall assessment."),
-        
-        HTML(test_tab),
-        
-        h3("2.2 Item Statistics"),
-        
-        HTML(item_tab),
-        
-        h3("2.3 Item Difficulty & Discrimination"),
-        
-        img(src = item_file),
-        
-        h3("2.4 Item Correlation Matrix"),
-        
-        img(src = corr_file)
-        
-      )
-    )
-  )
-}
-
-build_report_html <- function(
-    name,
-    examiner,
-    descriptives,
-    hist_plot,
-    test_stats,
-    item_stats,
-    item_plot,
-    corr_plot
-) {
-  
   library(htmltools)
   library(knitr)
+  library(kableExtra)
+  library(ggplot2)
+  library(base64enc)
+  
+  # ----- helper: embed plot in HTML -----
+  
+  embed_plot <- function(plot, width, height) {
+    
+    f <- tempfile(fileext = ".png")
+    ggsave(f, plot, width = width, height = height, dpi = 300)
+    
+    uri <- base64enc::dataURI(file = f, mime = "image/png")
+    
+    tags$img(src = uri)
+  }
   
   # ----- Derived interpretations -----
   
@@ -304,21 +79,80 @@ build_report_html <- function(
   else
     "middle/lower"
   
-  # ----- Save plots -----
-  
-  hist_file <- tempfile(fileext = ".png")
-  item_file <- tempfile(fileext = ".png")
-  corr_file <- tempfile(fileext = ".png")
-  
-  ggsave(hist_file, hist_plot, width = 7, height = 4, dpi = 300)
-  ggsave(item_file, item_plot, width = 9, height = 5, dpi = 300)
-  ggsave(corr_file, corr_plot, width = 11, height = 11, dpi = 300)
-  
   # ----- Tables -----
   
-  desc_tab  <- knitr::kable(descriptives, row.names = FALSE, format = "html")
-  test_tab  <- knitr::kable(test_stats, format = "html")
-  item_tab  <- knitr::kable(item_stats, format = "html")
+  desc_tab  <- knitr::kable(descriptives, row.names = FALSE, format = "html") |>
+    kable_styling(full_width = FALSE, position = "center")
+  
+  test_tab <- test_stats
+  
+  test_tab$`Average P` <- cell_spec(
+    test_tab$`Average P`,
+    "html",
+    background = ifelse(test_tab$`Average P` < 0.2, "tomato",
+                        ifelse(test_tab$`Average P` <= 0.8, "lightgreen", "tomato"))
+  )
+  
+  test_tab$`Average RIT` <- cell_spec(
+    test_tab$`Average RIT`,
+    "html",
+    background = ifelse(test_tab$`Average RIT` < 0.2, "tomato",
+                        ifelse(test_tab$`Average RIT` <= 0.3, "orange", "lightgreen"))
+  )
+  
+  test_tab$`Average RIR` <- cell_spec(
+    test_tab$`Average RIR`,
+    "html",
+    background = ifelse(test_tab$`Average RIR` < 0.2, "tomato",
+                        ifelse(test_tab$`Average RIR` <= 0.3, "orange", "lightgreen"))
+  )
+  
+  test_tab$`Cronbach's alpha` <- cell_spec(
+    test_tab$`Cronbach's alpha`,
+    "html",
+    background = ifelse(test_tab$`Cronbach's alpha` < 0.7,
+                        "tomato",
+                        "lightgreen")
+  )
+  
+  test_tab  <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html") |>
+    kable_styling(full_width = FALSE, position = "center")
+  
+  alpha_test <- test_stats$`Cronbach's alpha`[1]
+  
+  item_tab <- item_stats
+  
+  item_tab$P <- cell_spec(
+    item_tab$P,
+    "html",
+    background = ifelse(item_tab$P < 0.2, "tomato",
+                        ifelse(item_tab$P <= 0.8, "lightgreen", "tomato"))
+  )
+  
+  item_tab$RIT <- cell_spec(
+    item_tab$RIT,
+    "html",
+    background = ifelse(item_tab$RIT < 0.2, "tomato",
+                        ifelse(item_tab$RIT <= 0.3, "orange", "lightgreen"))
+  )
+  
+  item_tab$RIR <- cell_spec(
+    item_tab$RIR,
+    "html",
+    background = ifelse(item_tab$RIR < 0.2, "tomato",
+                        ifelse(item_tab$RIR <= 0.3, "orange", "lightgreen"))
+  )
+  
+  item_tab$`Alpha-if-deleted` <- cell_spec(
+    item_tab$`Alpha-if-deleted`,
+    "html",
+    background = ifelse(item_tab$`Alpha-if-deleted` > alpha_test,
+                        "tomato",
+                        "lightgreen")
+  )
+  
+  item_tab  <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html") |>
+    kable_styling(full_width = FALSE, position = "center")
   
   # ----- HTML document -----
   
@@ -343,13 +177,11 @@ build_report_html <- function(
         
         h1(sprintf("Assessment Report: %s", name)),
         
-        p(
-          sprintf(
-            "Report generated on %s by %s",
-            format(Sys.time(), "%d-%m-%Y"),
-            examiner
-          )
-        ),
+        p(sprintf(
+          "Report generated on %s by %s",
+          format(Sys.time(), "%d-%m-%Y"),
+          examiner
+        )),
         
         tags$hr(),
         
@@ -357,55 +189,45 @@ build_report_html <- function(
         
         h3("1.1 Descriptive statistics"),
         
-        p(
-          sprintf(
-            paste(
-              "The assessment included %s participants.",
-              "The average score achieved was %s,",
-              "with a median of %s.",
-              "The standard deviation was %s,",
-              "indicating %s among participants.",
-              "The skewness of the score distribution is %s,",
-              "suggesting the distribution is %s."
-            ),
-            participants,
-            avg_score,
-            median_score,
-            sd_score,
-            sd_text,
-            skew,
-            skew_text
-          )
-        ),
+        p(sprintf(
+          paste(
+            "The assessment included %s participants.",
+            "The average score achieved was %s,",
+            "with a median of %s.",
+            "The standard deviation was %s,",
+            "indicating %s among participants.",
+            "The skewness of the score distribution is %s,",
+            "suggesting the distribution is %s."
+          ),
+          participants,
+          avg_score,
+          median_score,
+          sd_score,
+          sd_text,
+          skew,
+          skew_text
+        )),
         
         HTML(desc_tab),
         
         h3("1.2 Distribution of Achieved Scores"),
         
-        p(
-          sprintf(
-            paste(
-              "The histogram shows that most students",
-              "achieved scores in the %s range.",
-              "Peaks at extremes may indicate ceiling or floor effects."
-            ),
-            difficulty_range
-          )
-        ),
+        p(sprintf(
+          paste(
+            "The histogram shows that most students",
+            "achieved scores in the %s range.",
+            "Peaks at extremes may indicate ceiling or floor effects."
+          ),
+          difficulty_range
+        )),
         
-        img(src = hist_file),
+        embed_plot(hist_plot, 7, 4),
         
         h2("2. Classical Assessment Analysis"),
         
         h3("2.1 Assessment Statistics"),
         
-        p(
-          paste(
-            "Average P indicates item difficulty.",
-            "RIT and RIR measure discrimination.",
-            "Cronbach's alpha indicates internal consistency."
-          )
-        ),
+        p("Average P indicates item difficulty. RIT and RIR measure discrimination. Cronbach's alpha indicates internal consistency."),
         
         HTML(test_tab),
         
@@ -415,11 +237,248 @@ build_report_html <- function(
         
         h3("2.3 Item Difficulty & Discrimination"),
         
-        img(src = item_file),
+        embed_plot(item_plot, 9, 5),
         
         h3("2.4 Item Correlation Matrix"),
         
-        img(src = corr_file)
+        embed_plot(corr_plot, 11, 11)
+        
+      )
+    )
+  )
+}
+
+build_report_html <- function(
+    name,
+    examiner,
+    descriptives,
+    hist_plot,
+    test_stats,
+    item_stats,
+    item_plot,
+    corr_plot
+) {
+  
+  library(htmltools)
+  library(knitr)
+  library(kableExtra)
+  library(ggplot2)
+  library(base64enc)
+  
+  # ----- helper: embed plot in HTML -----
+  
+  embed_plot <- function(plot, width, height) {
+    
+    f <- tempfile(fileext = ".png")
+    ggsave(f, plot, width = width, height = height, dpi = 300)
+    
+    uri <- base64enc::dataURI(file = f, mime = "image/png")
+    
+    tags$img(src = uri)
+  }
+  
+  # ----- Derived interpretations -----
+  
+  participants <- descriptives$Value[
+    descriptives$Statistic == "Number of participants"
+  ]
+  
+  avg_score <- descriptives$Value[
+    descriptives$Statistic == "Average achieved score"
+  ]
+  
+  median_score <- descriptives$Value[
+    descriptives$Statistic == "Median achieved score"
+  ]
+  
+  sd_score <- descriptives$Value[
+    descriptives$Statistic == "Standard deviation"
+  ]
+  
+  skew <- as.numeric(
+    descriptives$Value[descriptives$Statistic == "Skewness"]
+  )
+  
+  sd_text <- if (as.numeric(sd_score) > 10)
+    "considerable variability"
+  else
+    "relatively consistent performance"
+  
+  skew_text <- if (skew > 0.5)
+    "positively skewed, with a tendency toward lower scores"
+  else if (skew < -0.5)
+    "negatively skewed, with a tendency toward higher scores"
+  else
+    "approximately symmetric"
+  
+  difficulty_range <- if (mean(item_stats$P) > 0.7)
+    "upper"
+  else
+    "middle/lower"
+  
+  # ----- Tables -----
+  
+  desc_tab  <- knitr::kable(descriptives, row.names = FALSE, format = "html") |>
+    kable_styling(full_width = FALSE, position = "center")
+  
+  test_tab <- test_stats
+  
+  test_tab$`Average P` <- cell_spec(
+    test_tab$`Average P`,
+    "html",
+    background = ifelse(test_tab$`Average P` < 0.2, "tomato",
+                        ifelse(test_tab$`Average P` <= 0.8, "lightgreen", "tomato"))
+  )
+  
+  test_tab$`Average RIT` <- cell_spec(
+    test_tab$`Average RIT`,
+    "html",
+    background = ifelse(test_tab$`Average RIT` < 0.2, "tomato",
+                        ifelse(test_tab$`Average RIT` <= 0.3, "orange", "lightgreen"))
+  )
+  
+  test_tab$`Average RIR` <- cell_spec(
+    test_tab$`Average RIR`,
+    "html",
+    background = ifelse(test_tab$`Average RIR` < 0.2, "tomato",
+                        ifelse(test_tab$`Average RIR` <= 0.3, "orange", "lightgreen"))
+  )
+  
+  test_tab$`Cronbach's alpha` <- cell_spec(
+    test_tab$`Cronbach's alpha`,
+    "html",
+    background = ifelse(test_tab$`Cronbach's alpha` < 0.7,
+                        "tomato",
+                        "lightgreen")
+  )
+  
+  test_tab  <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html") |>
+    kable_styling(full_width = FALSE, position = "center")
+  
+  alpha_test <- test_stats$`Cronbach's alpha`[1]
+  
+  item_tab <- item_stats
+  
+  item_tab$P <- cell_spec(
+    item_tab$P,
+    "html",
+    background = ifelse(item_tab$P < 0.2, "tomato",
+                        ifelse(item_tab$P <= 0.8, "lightgreen", "tomato"))
+  )
+  
+  item_tab$RIT <- cell_spec(
+    item_tab$RIT,
+    "html",
+    background = ifelse(item_tab$RIT < 0.2, "tomato",
+                        ifelse(item_tab$RIT <= 0.3, "orange", "lightgreen"))
+  )
+  
+  item_tab$RIR <- cell_spec(
+    item_tab$RIR,
+    "html",
+    background = ifelse(item_tab$RIR < 0.2, "tomato",
+                        ifelse(item_tab$RIR <= 0.3, "orange", "lightgreen"))
+  )
+  
+  item_tab$`Alpha-if-deleted` <- cell_spec(
+    item_tab$`Alpha-if-deleted`,
+    "html",
+    background = ifelse(item_tab$`Alpha-if-deleted` > alpha_test,
+                        "tomato",
+                        "lightgreen")
+  )
+  
+  item_tab  <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html") |>
+    kable_styling(full_width = FALSE, position = "center")
+  
+  # ----- HTML document -----
+  
+  tagList(
+    
+    tags$html(
+      
+      tags$head(
+        tags$title("Assessment Report"),
+        tags$style(HTML("
+          body {font-family: Arial; margin:40px;}
+          h1 {color:#00205B;}
+          h2 {margin-top:40px;}
+          table {border-collapse: collapse; width:100%;}
+          th,td {border:1px solid #ddd; padding:6px;}
+          th {background:#f4f6fb;}
+          img {max-width:100%; margin-top:10px;}
+        "))
+      ),
+      
+      tags$body(
+        
+        h1(sprintf("Assessment Report: %s", name)),
+        
+        p(sprintf(
+          "Report generated on %s by %s",
+          format(Sys.time(), "%d-%m-%Y"),
+          examiner
+        )),
+        
+        tags$hr(),
+        
+        h2("1. Summary"),
+        
+        h3("1.1 Descriptive statistics"),
+        
+        p(sprintf(
+          paste(
+            "The assessment included %s participants.",
+            "The average score achieved was %s,",
+            "with a median of %s.",
+            "The standard deviation was %s,",
+            "indicating %s among participants.",
+            "The skewness of the score distribution is %s,",
+            "suggesting the distribution is %s."
+          ),
+          participants,
+          avg_score,
+          median_score,
+          sd_score,
+          sd_text,
+          skew,
+          skew_text
+        )),
+        
+        HTML(desc_tab),
+        
+        h3("1.2 Distribution of Achieved Scores"),
+        
+        p(sprintf(
+          paste(
+            "The histogram shows that most students",
+            "achieved scores in the %s range.",
+            "Peaks at extremes may indicate ceiling or floor effects."
+          ),
+          difficulty_range
+        )),
+        
+        embed_plot(hist_plot, 7, 4),
+        
+        h2("2. Classical Assessment Analysis"),
+        
+        h3("2.1 Assessment Statistics"),
+        
+        p("Average P indicates item difficulty. RIT and RIR measure discrimination. Cronbach's alpha indicates internal consistency."),
+        
+        HTML(test_tab),
+        
+        h3("2.2 Item Statistics"),
+        
+        HTML(item_tab),
+        
+        h3("2.3 Item Difficulty & Discrimination"),
+        
+        embed_plot(item_plot, 9, 5),
+        
+        h3("2.4 Item Correlation Matrix"),
+        
+        embed_plot(corr_plot, 11, 11)
         
       )
     )
