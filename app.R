@@ -1,15 +1,15 @@
 library(shiny)
-library(readxl)
-library(ggplot2)
-library(DT)
-library(bslib)
-library(shinydisconnect)
-library(shinycssloaders)
-library(shinyjs)
-library(knitr)
-library(kableExtra)
-library(htmltools)
-library(base64enc)
+if(FALSE) {
+  library(readxl)
+  library(ggplot2)
+  library(DT)
+  library(bslib)
+  library(shinydisconnect)
+  library(knitr)
+  library(kableExtra)
+  library(htmltools)
+  library(base64enc)
+}
 
 # Workaround for Chromium Issue 468227
 downloadButton <- function(...) {
@@ -60,7 +60,7 @@ build_report_html <- function(
   test_tab$`Average RIR` <- cell_spec(test_tab$`Average RIR`,"html", color = ifelse(test_tab$`Average RIR` < 0.2,"tomato",ifelse(test_tab$`Average RIR` <=0.3,"orange","forestgreen")))
   test_tab$`Cronbach's alpha` <- cell_spec(test_tab$`Cronbach's alpha`,"html", color = ifelse(test_tab$`Cronbach's alpha` < 0.7,"tomato","forestgreen"))
   test_tab <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') %>%
-    kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped","hover"))
+    kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped","hover"))
   
   # Item stats
   alpha_test <- test_stats$`Cronbach's alpha`[1]
@@ -70,7 +70,7 @@ build_report_html <- function(
   item_tab$RIR <- cell_spec(item_tab$RIR,"html", color = ifelse(item_tab$RIR < 0.2,"tomato",ifelse(item_tab$RIR <=0.3,"orange","forestgreen")))
   item_tab$`Alpha-if-deleted` <- cell_spec(item_tab$`Alpha-if-deleted`,"html", color = ifelse(item_tab$`Alpha-if-deleted` < alpha_test,"forestgreen","tomato"))
   item_tab <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') %>%
-    kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped","hover"))
+    kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped","hover"))
   
   # ----- Build HTML -----
   tagList(
@@ -209,15 +209,15 @@ nyenrode_red   <- "#BD3231"
 nyenrode_blue2 <- "#0054A6"
 
 theme_nyenrode <- function() {
-  theme_classic() +
-    theme(
-      plot.background  = element_rect(fill = NA, color = NA),
-      panel.background = element_rect(fill = NA, color = NA),
-      axis.text        = element_text(color = "black", size = 10),
-      axis.title       = element_text(color = "black", size = 15),
-      legend.title     = element_text(color = "black", size = 20),
-      legend.text      = element_text(color = "black", size = 20),
-      axis.line        = element_blank()
+  ggplot2::theme_classic() +
+    ggplot2::theme(
+      plot.background  = ggplot2::element_rect(fill = NA, color = NA),
+      panel.background = ggplot2::element_rect(fill = NA, color = NA),
+      axis.text        = ggplot2::element_text(color = "black", size = 10),
+      axis.title       = ggplot2::element_text(color = "black", size = 15),
+      legend.title     = ggplot2::element_text(color = "black", size = 20),
+      legend.text      = ggplot2::element_text(color = "black", size = 20),
+      axis.line        = ggplot2::element_blank()
     )
 }
 
@@ -280,16 +280,14 @@ create_descriptives_table <- function(input, parsed) {
 
 create_histogram <- function(input, parsed) {
   if (is.null(input$file)) {
-    p <- ggplot(data.frame(x = 1), aes(x = x)) +
-      geom_histogram() +
-      scale_x_continuous(name = "Achieved score", limits = c(0, 1)) +
-      scale_y_continuous(name = "Frequency", limits = c(0, 1)) +
-      geom_segment(y = -Inf, yend = -Inf, x = 0, xend = 1) +
-      geom_segment(x = -Inf, xend = -Inf, y = 0, yend = 1) +
+    p <- ggplot2::ggplot(data.frame(x = 1), ggplot2::aes(x = x)) +
+      ggplot2::geom_histogram() +
+      ggplot2::scale_x_continuous(name = "Achieved score", limits = c(0, 1)) +
+      ggplot2::scale_y_continuous(name = "Frequency", limits = c(0, 1)) +
+      ggplot2::geom_segment(y = -Inf, yend = -Inf, x = 0, xend = 1) +
+      ggplot2::geom_segment(x = -Inf, xend = -Inf, y = 0, yend = 1) +
       theme_nyenrode() +
-      theme(
-        axis.text = element_blank()
-      )
+      ggplot2::theme(axis.text = element_blank())
   } else {
     req(parsed())
     d <- parsed()$data
@@ -298,14 +296,14 @@ create_histogram <- function(input, parsed) {
     xBreaks <- pretty(c(0, maxScore), min.n = 4)
     h <- hist(c(0, totalScores, maxScore), breaks = 30, plot = FALSE)
     yBreaks <- pretty(c(0, h$counts * 1.25), min.n = 4)
-    p <- ggplot(data.frame(x = totalScores), aes(x = x)) +
-      geom_histogram(bins = 30, color = "black", fill = "lightgray") +
-      scale_x_continuous(name = "Achieved score", limits = c(-0.5, max(xBreaks) + 0.5), breaks = xBreaks) +
-      scale_y_continuous(name = "Frequency", limits = c(0, max(yBreaks)), breaks = yBreaks) +
-      geom_segment(y = -Inf, yend = -Inf, x = 0, xend = max(xBreaks)) +
-      geom_segment(x = -Inf, xend = -Inf, y = 0, yend = max(yBreaks)) +
-      geom_segment(x = maxScore, xend = maxScore, y = 0, yend = max(yBreaks), linetype = "dashed", color = "firebrick") +
-      annotate(geom = "text", x = maxScore, y = max(yBreaks), label = "Max. score", hjust = 1.2, size = 5, color = "firebrick") +
+    p <- ggplot2::ggplot(data.frame(x = totalScores), ggplot2::aes(x = x)) +
+      ggplot2::geom_histogram(bins = 30, color = "black", fill = "lightgray") +
+      ggplot2::scale_x_continuous(name = "Achieved score", limits = c(-0.5, max(xBreaks) + 0.5), breaks = xBreaks) +
+      ggplot2::scale_y_continuous(name = "Frequency", limits = c(0, max(yBreaks)), breaks = yBreaks) +
+      ggplot2::geom_segment(y = -Inf, yend = -Inf, x = 0, xend = max(xBreaks)) +
+      ggplot2::geom_segment(x = -Inf, xend = -Inf, y = 0, yend = max(yBreaks)) +
+      ggplot2::geom_segment(x = maxScore, xend = maxScore, y = 0, yend = max(yBreaks), linetype = "dashed", color = "firebrick") +
+      ggplot2::annotate(geom = "text", x = maxScore, y = max(yBreaks), label = "Max. score", hjust = 1.2, size = 5, color = "firebrick") +
       theme_nyenrode()
   }
   return(p)
@@ -374,16 +372,14 @@ create_item_stats <- function(input, parsed) {
 
 create_item_plot <- function(input, parsed) {
   if (is.null(input$file)) {
-    p <- ggplot(data.frame(x = 1), aes(x = x)) +
-      geom_histogram() +
-      scale_x_continuous(name = "Item (Cirrus ID)", limits = c(0, 1)) +
-      scale_y_continuous(name = NULL, limits = c(0, 1)) +
-      geom_segment(y = -Inf, yend = -Inf, x = 0, xend = 1) +
-      geom_segment(x = -Inf, xend = -Inf, y = 0, yend = 1) +
+    p <- ggplot2::ggplot(data.frame(x = 1), ggplot2::aes(x = x)) +
+      ggplot2::geom_histogram() +
+      ggplot2::scale_x_continuous(name = "Item (Cirrus ID)", limits = c(0, 1)) +
+      ggplot2::scale_y_continuous(name = NULL, limits = c(0, 1)) +
+      ggplot2::geom_segment(y = -Inf, yend = -Inf, x = 0, xend = 1) +
+      ggplot2::geom_segment(x = -Inf, xend = -Inf, y = 0, yend = 1) +
       theme_nyenrode() +
-      theme(
-        axis.text = element_blank()
-      )
+      ggplot2::theme(axis.text = element_blank())
   } else {
     req(parsed())
     d <- parsed()$data
@@ -392,32 +388,31 @@ create_item_plot <- function(input, parsed) {
     RIT <- sapply(d, function(x) cor(x, rowSums(d), use = "pairwise.complete.obs"))
     Pval <- colMeans(d) / qm
     df <- data.frame(item = factor(names(Pval), levels = names(Pval)[order(Pval)]), P = Pval, RIT = RIT)
-    df_long <- reshape(df, varying = list(c("P", "RIT")), v.names = "value", timevar = "metric", times = c("P", "RIT"), direction = "long")
+    df_long <- stats::reshape(df, varying = list(c("P", "RIT")), v.names = "value", timevar = "metric", times = c("P", "RIT"), direction = "long")
     yBreaks <- pretty(c(0, 1, df_long$value), min.n = 4)
-    p <- ggplot(df_long, aes(x = item, y = value, fill = metric)) +
-      geom_bar(stat = "identity", width = 0.75, position = position_dodge(width = 0.75), color = "black") +
-      scale_fill_manual(name = NULL, values = c(nyenrode_gold, nyenrode_blue2), labels = c("P (Difficulty)", "RIT (Discrimination)")) +
-      scale_y_continuous(name = NULL, limits = c(min(yBreaks), max(yBreaks)), breaks = yBreaks) +
-      scale_x_discrete(name = "Item (Cirrus ID)") +
-      geom_segment(x = -Inf, xend = -Inf, y = min(yBreaks), yend = max(yBreaks)) +
-      geom_segment(y = -Inf, yend = -Inf, x = 1, xend = ncol(d)) +
+    p <- ggplot2::ggplot(df_long, ggplot2::aes(x = item, y = value, fill = metric)) +
+      ggplot2::geom_bar(stat = "identity", width = 0.75, position = position_dodge(width = 0.75), color = "black") +
+      ggplot2::scale_fill_manual(name = NULL, values = c(nyenrode_gold, nyenrode_blue2), labels = c("P (Difficulty)", "RIT (Discrimination)")) +
+      ggplot2::scale_y_continuous(name = NULL, limits = c(min(yBreaks), max(yBreaks)), breaks = yBreaks) +
+      ggplot2::scale_x_discrete(name = "Item (Cirrus ID)") +
+      ggplot2::geom_segment(x = -Inf, xend = -Inf, y = min(yBreaks), yend = max(yBreaks)) +
+      ggplot2::geom_segment(y = -Inf, yend = -Inf, x = 1, xend = ncol(d)) +
       theme_nyenrode() +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1),
-            legend.position = "top")
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "top")
   }
   return(p)
 }
 
 create_corr_plot <- function(input, parsed) {
   if (is.null(input$file)) {
-    p <- ggplot(data.frame(x = 1), aes(x = x)) +
-      geom_histogram() +
-      scale_x_continuous(name = "Item (Cirrus ID)", limits = c(0, 1)) +
-      scale_y_continuous(name = "Item (Cirrus ID)", limits = c(0, 1)) +
-      geom_segment(y = -Inf, yend = -Inf, x = 0, xend = 1) +
-      geom_segment(x = -Inf, xend = -Inf, y = 0, yend = 1) +
+    p <- ggplot2::ggplot(data.frame(x = 1), ggplot2::aes(x = x)) +
+      ggplot2::geom_histogram() +
+      ggplot2::scale_x_continuous(name = "Item (Cirrus ID)", limits = c(0, 1)) +
+      ggplot2::scale_y_continuous(name = "Item (Cirrus ID)", limits = c(0, 1)) +
+      ggplot2::geom_segment(y = -Inf, yend = -Inf, x = 0, xend = 1) +
+      ggplot2::geom_segment(x = -Inf, xend = -Inf, y = 0, yend = 1) +
       theme_nyenrode() +
-      theme(axis.text = element_blank())
+      ggplot2::theme(axis.text = element_blank())
   } else {
     req(parsed())
     d <- parsed()$data
@@ -428,17 +423,15 @@ create_corr_plot <- function(input, parsed) {
     xBreaks <- unique(cor_df$Var1)
     yBreaks <- unique(cor_df$Var2)
     col_breaks <- pretty(c(-1, 1), min.n = 5)
-    p <- ggplot(cor_df, aes(x = Var1, y = Var2, fill = Correlation)) + 
-      geom_tile(color = "black") +
-      scale_fill_gradient2(name = NULL, low = "firebrick", mid = "white", high = "forestgreen", na.value = "black", midpoint = 0, limits = c(-1, 1), breaks = col_breaks) + 
-      scale_x_discrete(name = "Item (Cirrus ID)", breaks = xBreaks) +
-      scale_y_discrete(name = "Item (Cirrus ID)", breaks = yBreaks) + 
-      geom_segment(x = -Inf, xend = -Inf, y = 1, yend = length(yBreaks)) +
-      geom_segment(y = -Inf, yend = -Inf, x = 1, xend = length(xBreaks)) +
+    p <- ggplot2::ggplot(cor_df, ggplot2::aes(x = Var1, y = Var2, fill = Correlation)) + 
+      ggplot2::geom_tile(color = "black") +
+      ggplot2::scale_fill_gradient2(name = NULL, low = "firebrick", mid = "white", high = "forestgreen", na.value = "black", midpoint = 0, limits = c(-1, 1), breaks = col_breaks) + 
+      ggplot2::scale_x_discrete(name = "Item (Cirrus ID)", breaks = xBreaks) +
+      ggplot2::scale_y_discrete(name = "Item (Cirrus ID)", breaks = yBreaks) + 
+      ggplot2::geom_segment(x = -Inf, xend = -Inf, y = 1, yend = length(yBreaks)) +
+      ggplot2::geom_segment(y = -Inf, yend = -Inf, x = 1, xend = length(xBreaks)) +
       theme_nyenrode() + 
-      theme(axis.text.x = element_text(angle = 45, hjust = 1),
-            legend.position = "top",
-            legend.key.width  = unit(4, "cm"))
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "top", legend.key.width  = unit(4, "cm"))
   }
   return(p)
 }
@@ -469,10 +462,10 @@ total_cronbach_alpha <- function(data) {
 # UI
 # ---------------------------
 ui <- fluidPage(
-  useShinyjs(),
+  title = "Advanced Assessment Analysis",
   
   # Session disconnect overlay
-  disconnectMessage(
+  shinydisconnect::disconnectMessage(
     text = "Your session has expired.",
     refresh = "Reload",
     background = "#646464e6",
@@ -482,7 +475,7 @@ ui <- fluidPage(
   ),
   
   # --- Visual theme (Bootstrap 5) ---
-  theme = bs_theme(
+  theme = bslib::bs_theme(
     version  = 5,
     bg       = "#FFFFFF",
     fg       = "#1A1A1A",
@@ -497,7 +490,7 @@ ui <- fluidPage(
     heading_font = "Arial, Helvetica, sans-serif",
     "font-size-base" = "1rem"
   ) |>
-    bs_add_rules(rules = sprintf("
+    bslib::bs_add_rules(rules = sprintf("
     .app-title-bar {
       background: linear-gradient(90deg, %1$s 0%%, #0b2c7d 100%%);
       color: #fff; padding: 14px 18px; margin-bottom: 18px;
@@ -574,7 +567,7 @@ ui <- fluidPage(
           ),
           section_card(
             "1.2 Distribution of Achieved Scores",
-            div(style = "width: 100%; margin: 0 auto;", withSpinner(plotOutput("histogram", width = "100%"), type = 4, color = nyenrode_blue))
+            div(style = "width: 100%; margin: 0 auto;", plotOutput("histogram", width = "100%"))
           )
         ),
         
@@ -594,12 +587,12 @@ ui <- fluidPage(
           section_card(
             "2.3 Item Difficulty & Discrimination",
             div(style = "width: 100%; margin: 0 auto;",
-                withSpinner(plotOutput("item_plot", width = "100%"), type = 4, color = nyenrode_blue))
+                plotOutput("item_plot", width = "100%"))
           ),
           section_card(
             "2.4 Item Correlation Matrix",
             div(style = "width: 100%; margin: 0 auto;",
-                withSpinner(plotOutput("corr_plot", width = "100%", height = "1000px"), type = 4, color = nyenrode_blue)
+                plotOutput("corr_plot", width = "100%", height = "1000px")
             )
           )
         )
@@ -624,7 +617,7 @@ server <- function(input, output, session) {
   # Data import
   rawData <- reactive({
     req(input$file)
-    read_excel(path = input$file$datapath, col_names = FALSE, na = c("N/A", "n.b."))
+    readxl::read_excel(path = input$file$datapath, col_names = FALSE, na = c("N/A", "n.b."))
   })
   
   # Parse & clean to your spec
@@ -688,7 +681,7 @@ server <- function(input, output, session) {
   # Descriptives (reactive + UI)
   descriptives_react <- reactive(create_descriptives_table(input, parsed))
   output$descriptives <- DT::renderDataTable({
-    datatable(
+    DT::datatable(
       descriptives_react(),
       rownames = FALSE,
       options = list(dom = "t", ordering = FALSE, pageLength = 20),
@@ -703,7 +696,7 @@ server <- function(input, output, session) {
   # Test stats
   test_stats_react <- reactive(create_test_stats(input, parsed))
   output$test_stats <- DT::renderDataTable({
-    datatable(
+    DT::datatable(
       test_stats_react(),
       rownames = FALSE,
       options = list(
@@ -716,30 +709,30 @@ server <- function(input, output, session) {
       ),
       class = "compact"
     ) %>%
-      formatStyle(
+      DT::formatStyle(
         "Average P",
-        color = styleInterval(
+        color = DT::styleInterval(
           c(0.2, 0.8),       # breakpoints
           c("tomato", "forestgreen", "tomato")  # colors: too hard / ideal / too easy
         )
       ) %>%
-      formatStyle(
+      DT::formatStyle(
         "Average RIT",
-        color = styleInterval(
+        color = DT::styleInterval(
           c(0.2, 0.3),                     # low discrimination threshold
           c("tomato", "orange", "forestgreen")           # red if low, else no color
         )
       ) %>%
-      formatStyle(
+      DT::formatStyle(
         "Average RIR",
-        color = styleInterval(
+        color = DT::styleInterval(
           c(0.2, 0.3),                     # low discrimination threshold
           c("tomato", "orange", "forestgreen")           # red if low, else no color
         )
       ) %>%
-      formatStyle(
+      DT::formatStyle(
         "Cronbach's alpha",
-        color = styleInterval(
+        color = DT::styleInterval(
           c(0.7),
           c("tomato", "forestgreen")           # red if low, else no color
         )
@@ -749,36 +742,36 @@ server <- function(input, output, session) {
   # Item stats
   item_stats_react <- reactive(create_item_stats(input, parsed))
   output$item_stats <- DT::renderDataTable({
-    datatable(
+    DT::datatable(
       item_stats_react(),
       rownames = FALSE,
       options = list(pageLength = 5, autoWidth = TRUE),
       class = "stripe hover order-column compact row-border"
     ) %>%
-      formatStyle(
+      DT::formatStyle(
         "P",
-        color = styleInterval(
+        color = DT::styleInterval(
           c(0.2, 0.8),       # breakpoints
           c("tomato", "forestgreen", "tomato")  # colors: too hard / ideal / too easy
         )
       ) %>%
-      formatStyle(
+      DT::formatStyle(
         "RIT",
-        color = styleInterval(
+        color = DT::styleInterval(
           c(0.2, 0.3),                     # low discrimination threshold
           c("tomato", "orange", "forestgreen")           # red if low, else no color
         )
       ) %>%
-      formatStyle(
+      DT::formatStyle(
         "RIR",
-        color = styleInterval(
+        color = DT::styleInterval(
           c(0.2, 0.3),                     # low discrimination threshold
           c("tomato", "orange", "forestgreen")           # red if low, else no color
         )
       ) %>%
-      formatStyle(
+      DT::formatStyle(
         "Alpha-if-deleted",
-        color = styleInterval(
+        color = DT::styleInterval(
           c(test_stats_react()[1, 4]),
           c("forestgreen", "tomato")           # red if low, else no color
         )
