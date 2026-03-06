@@ -110,38 +110,47 @@ build_report_html <- function(
           tags$hr(),
           
           h2("1. Summary"),
+          p("The following output presents a quick overview of the assessment scores."),
+          
           h3("1.1 Descriptive Statistics"),
-          p(sprintf(
-            "This assessment included %s participants. The average score achieved by participants was %s. This average (or mean) represents the central tendency of scores, showing what a 'typical' participant scored. The median score was %s, which is the middle value when all participants are ranked from lowest to highest. Comparing the mean and median helps identify skewness in the distribution. The standard deviation was %s, indicating %s. A high standard deviation means that participant scores vary widely, while a low standard deviation indicates that most participants scored near the mean. The skewness of the score distribution is %s, which %s. Skewness tells us whether the data lean toward higher or lower scores: positive skew suggests many low scores and few high scores, while negative skew suggests the opposite. The kurtosis is %s, which %s. Kurtosis describes the 'peakedness' of the distribution: a high kurtosis indicates many scores near the mean with few extremes, while a low kurtosis suggests a flatter distribution with more scores at the extremes.",
-            participants, avg_score, median_score, sd_score, sd_text, skew, skew_text, kurt, kurt_text
-          )),
+          p(sprintf("This assessment included %s participants. This table displayes various descriptive statistics of the assessment scores that can help identify patterns.", participants)),
+          tags$ul(
+            tags$li(p(sprintf("The average (or mean) represents the central tendency of scores, showing what a 'typical' participant scored. The average score achieved by participants was %s.", avg_score))),
+            tags$li(p(sprintf("The median is the middle score when all participants are ranked from lowest to highest. The median score was %s. Comparing the mean and median helps identify skewness in the distribution.", median_score))),
+            tags$li(p(sprintf("A high standard deviation means that participant scores vary widely, while a low standard deviation indicates that most participants scored near the mean. The standard deviation was %s, indicating %s.", sd_score, sd_text))),
+            tags$li(p(sprintf("Skewness tells us whether the data lean toward higher or lower scores: positive skew suggests many low scores and few high scores, while negative skew suggests the opposite. The skewness of the score distribution is %s, which %s.", skew, skew_text))),
+            tags$li(p(sprintf("Kurtosis describes the 'peakedness' of the distribution: a high kurtosis indicates many scores near the mean with few extremes, while a low kurtosis suggests a flatter distribution with more scores at the extremes. The kurtosis is %s, which %s.", kurt, kurt_text)))
+          ),
           HTML(desc_tab),
           
           h3("1.2 Distribution of Achieved Scores"),
-          p(sprintf(
-            "The histogram below shows the frequency distribution of the scores achieved by all participants. The horizontal axis represents the score ranges, while the vertical axis shows how many participants achieved scores in each range. Most participants scored in the %s, which indicates where the assessment items were most effective in differentiating participants. Peaks near the maximum or minimum possible scores suggest ceiling effects (too many participants scoring very high) or floor effects (too many scoring very low), which may reduce the ability of the test to distinguish between stronger and weaker participants. By reviewing this histogram, examiners can identify whether items were too easy or too difficult and consider adjustments in future assessments.",
-            difficulty_range
-          )),
+          p("The histogram below shows the frequency distribution of the scores of all participants. The horizontal axis represents the score ranges, while the vertical axis shows how many participants achieved scores in each range."),
+          tags$ul(
+            tags$li(sprintf("In this assessment, most participants scored in the %s range, which indicates that the assessment items in this range were most effective in differentiating participants.", difficulty_range)),
+            tags$li(p("Peaks near the maximum or minimum possible scores may suggest ceiling effects (too many participants scoring very high) or floor effects (too many scoring very low), which may reduce the ability of the test to distinguish between stronger and weaker participants.")),
+            tags$li(p("Multiple peaks in the distribution may indicate that different groups of participants performed differently on the assessment.")),
+          ),
           embed_plot(hist_plot, 7, 4),
           
           h2("2. Classical Assessment Analysis"),
+          p("Classical assessment analysis uses statistics to evaluate the quality of the overall test and the individual items. These statistics are not binding and should always be interpreted in the context of the assessment purpose, participant population, and sample size. Small sample sizes may produce unstable estimates."),
           
           h3("2.1 Assessments Statistics"),
           p(HTML("This table displays the key evaluation metrics for the overall assessment. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>.")),
           tags$ul(
-            tags$li(HTML("<b>Average P (Difficulty)</b>: Values near 0 indicate very difficult items, values near 1 indicate very easy items. Ideally, items are moderately difficult (0.3–0.8, green) to provide effective discrimination.")),
-            tags$li(HTML("<b>Average RIT and RIR (Discrimination)</b>: These values measure how well the assessment between higher and lower scoring participants. Values below 0.2 (red) suggest poor discrimination; 0.2–0.3 (orange) indicate average discrimination; values above 0.3 (green) indicate good discrimination.")),
-            tags$li(HTML("<b>Cronbach's alpha (Internal Consistency)</b>: Values above 0.7 (green) indicate reliable measurement of the intended construct. Lower values suggest inconsistent items or that some items may not contribute effectively to overall reliability."))
+            tags$li(p(HTML("<b>Average P (Difficulty)</b>: Values near 0 indicate very difficult items, values near 1 indicate very easy items. Ideally, items are moderately difficult (0.3–0.8, green) to provide effective discrimination."))),
+            tags$li(p(HTML("<b>Average RIT and RIR (Discrimination)</b>: These values measure how well the assessment between higher and lower scoring participants. Values below 0.2 (red) suggest poor discrimination; 0.2–0.3 (orange) indicate average discrimination; values above 0.3 (green) indicate good discrimination."))),
+            tags$li(p(HTML("<b>Cronbach's alpha (Internal Consistency)</b>: Values above 0.7 (green) indicate reliable measurement of the intended construct. Lower values suggest inconsistent items or that some items may not contribute effectively to overall reliability. Extremely high alpha values (>0.9) may indicate that several items are very similar or redundant.")))
           ),
           HTML(test_tab),
           
           h3("2.2 Item Statistics"),
           p(HTML("This table summarizes the key evaluation metrics for each individual item in the assessment. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>.")),
           tags$ul(
-            tags$li(HTML("<b>P (Item Difficulty)</b>: Values near 0 indicate very difficult items, near 1 indicate very easy items. Red = too hard/easy, Green = ideal difficulty.")),
-            tags$li(HTML("<b>RIT (Item-Total Correlation)</b>: Measures correlation with total score. Red = low (<0.2), Orange = average (0.2–0.3), Green = strong (>0.3).")),
-            tags$li(HTML("<b>RIR (Item-Rest Correlation)</b>: Correlation with rest of assessment. Coloring follows RIT logic.")),
-            tags$li(HTML("<b>Alpha-if-deleted</b>: Shows impact on Cronbach's alpha if item removed. Red = improves reliability, Green = reduces reliability."))
+            tags$li(p(HTML("<b>P (Item Difficulty)</b>: Values near 0 indicate very difficult items, near 1 indicate very easy items. Red = too hard/easy, Green = ideal difficulty."))),
+            tags$li(p(HTML("<b>RIT (Item-Total Correlation)</b>: Measures correlation with total score. Red = low (<0.2), Orange = average (0.2–0.3), Green = strong (>0.3). Negative values values require immediate review, as they indicate that lower-performing participants answered the item correctly more often than higher-performing participants."))),
+            tags$li(p(HTML("<b>RIR (Item-Rest Correlation)</b>: Correlation with rest of assessment. The same logic as for the RIT applies"))),
+            tags$li(p(HTML("<b>Alpha-if-deleted</b>: Shows impact on Cronbach's alpha if item removed. Red = improves internal consistency, Green = reduces internal consistency.")))
           ),
           HTML(item_tab),
           
@@ -150,7 +159,11 @@ build_report_html <- function(
           embed_plot(item_plot, 9, 5),
           
           h3("2.4 Item Correlation Matrix"),
-          p("This heatmap shows correlations between all items. Strong positive correlations (>0.6) may indicate redundancy between items, while negative correlations or very low correlations may indicate potential errors, misalignment, or that items measure different constructs. Reviewing these correlations helps improve the assessment's internal consistency and validity."),
+          p("This heatmap shows correlations between all assessment items."),
+          tags$ul(
+            tags$li(p("Items showing strong positive correlations should be reviewed for redundancy.")),
+            tags$li(p("Items showing negative correlations with multiple other items should be carefully reviewed for misalignment, or scoring and content errors."))
+          ),
           embed_plot(corr_plot, 11, 11)
         )
       )
@@ -502,7 +515,7 @@ ui <- fluidPage(
       ),
       fileInput("file", HTML("<b>Upload candidate scores (.xlsx from Cirrus)</b>"), accept = ".xlsx", buttonLabel = HTML("<b>Browse...</b>")),
       section_card(
-        "IMPORTANT: OVERVIEW",
+        "IMPORTANT: QUICK OVERVIEW",
         uiOutput("dataset_info")
       ),
       textInput("name", label = "Assessment", placeholder = "e.g., Statistical Reasoning - Final Exam"),
