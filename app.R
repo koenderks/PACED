@@ -31,7 +31,7 @@ build_report_html <- function(
   # ----- helper: embed plot in HTML -----
   embed_plot <- function(plot, width, height) {
     f <- tempfile(fileext = ".png")
-    ggsave(f, plot, width = width, height = height, dpi = 300)
+    ggplot2::ggsave(f, plot, width = width, height = height, dpi = 300)
     uri <- base64enc::dataURI(file = f, mime = "image/png")
     tags$img(src = uri, style = "display:block; margin:20px auto; max-width:100%;")
   }
@@ -50,24 +50,24 @@ build_report_html <- function(
 
   # Descriptives
   desc_tab <- knitr::kable(descriptives, row.names = FALSE, format = "html", table.attr = 'class="left_table"') |>
-    kable_styling(full_width = FALSE, position = "center", bootstrap_options = "striped")
+    kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = "striped")
 
   # Test stats
   test_tab <- test_stats
-  test_tab$`Average P` <- cell_spec(test_tab$`Average P`, "html", color = ifelse(test_tab$`Average P` < 0.2, "tomato", ifelse(test_tab$`Average P` <= 0.8, "forestgreen", "tomato")))
-  test_tab$`Average RIT` <- cell_spec(test_tab$`Average RIT`, "html", color = ifelse(test_tab$`Average RIT` < 0.2, "tomato", ifelse(test_tab$`Average RIT` <= 0.3, "orange", "forestgreen")))
-  test_tab$`Average RIR` <- cell_spec(test_tab$`Average RIR`, "html", color = ifelse(test_tab$`Average RIR` < 0.2, "tomato", ifelse(test_tab$`Average RIR` <= 0.3, "orange", "forestgreen")))
-  test_tab$`Cronbach's alpha` <- cell_spec(test_tab$`Cronbach's alpha`, "html", color = ifelse(test_tab$`Cronbach's alpha` < 0.7, "tomato", "forestgreen"))
+  test_tab$`Average P` <- kableExtra::cell_spec(test_tab$`Average P`, "html", color = ifelse(test_tab$`Average P` < 0.2, "tomato", ifelse(test_tab$`Average P` <= 0.8, "forestgreen", "tomato")))
+  test_tab$`Average RIT` <- kableExtra::cell_spec(test_tab$`Average RIT`, "html", color = ifelse(test_tab$`Average RIT` < 0.2, "tomato", ifelse(test_tab$`Average RIT` <= 0.3, "orange", "forestgreen")))
+  test_tab$`Average RIR` <- kableExtra::cell_spec(test_tab$`Average RIR`, "html", color = ifelse(test_tab$`Average RIR` < 0.2, "tomato", ifelse(test_tab$`Average RIR` <= 0.3, "orange", "forestgreen")))
+  test_tab$`Cronbach's alpha` <- kableExtra::cell_spec(test_tab$`Cronbach's alpha`, "html", color = ifelse(test_tab$`Cronbach's alpha` < 0.7, "tomato", "forestgreen"))
   test_tab <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') |>
     kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 
   # Item stats
   alpha_test <- test_stats$`Cronbach's alpha`[1]
   item_tab <- item_stats
-  item_tab$P <- cell_spec(item_tab$P, "html", color = ifelse(item_tab$P < 0.2, "tomato", ifelse(item_tab$P <= 0.8, "forestgreen", "tomato")))
-  item_tab$RIT <- cell_spec(item_tab$RIT, "html", color = ifelse(item_tab$RIT < 0.2, "tomato", ifelse(item_tab$RIT <= 0.3, "orange", "forestgreen")))
-  item_tab$RIR <- cell_spec(item_tab$RIR, "html", color = ifelse(item_tab$RIR < 0.2, "tomato", ifelse(item_tab$RIR <= 0.3, "orange", "forestgreen")))
-  item_tab$`Alpha-if-deleted` <- cell_spec(item_tab$`Alpha-if-deleted`, "html", color = ifelse(item_tab$`Alpha-if-deleted` < alpha_test, "forestgreen", "tomato"))
+  item_tab$P <- kableExtra::cell_spec(item_tab$P, "html", color = ifelse(item_tab$P < 0.2, "tomato", ifelse(item_tab$P <= 0.8, "forestgreen", "tomato")))
+  item_tab$RIT <- kableExtra::cell_spec(item_tab$RIT, "html", color = ifelse(item_tab$RIT < 0.2, "tomato", ifelse(item_tab$RIT <= 0.3, "orange", "forestgreen")))
+  item_tab$RIR <- kableExtra::cell_spec(item_tab$RIR, "html", color = ifelse(item_tab$RIR < 0.2, "tomato", ifelse(item_tab$RIR <= 0.3, "orange", "forestgreen")))
+  item_tab$`Alpha-if-deleted` <- kableExtra::cell_spec(item_tab$`Alpha-if-deleted`, "html", color = ifelse(item_tab$`Alpha-if-deleted` < alpha_test, "forestgreen", "tomato"))
   item_tab <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') |>
     kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 
