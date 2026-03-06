@@ -19,14 +19,14 @@ downloadButton <- function(...) {
 }
 
 build_report_html <- function(
-  name,
-  examiner,
-  descriptives,
-  hist_plot,
-  test_stats,
-  item_stats,
-  item_plot,
-  corr_plot
+    name,
+    examiner,
+    descriptives,
+    hist_plot,
+    test_stats,
+    item_stats,
+    item_plot,
+    corr_plot
 ) {
   # ----- helper: embed plot in HTML -----
   embed_plot <- function(plot, width, height) {
@@ -35,7 +35,7 @@ build_report_html <- function(
     uri <- base64enc::dataURI(file = f, mime = "image/png")
     tags$img(src = uri, style = "display:block; margin:20px auto; max-width:100%;")
   }
-
+  
   # ----- Derived interpretations -----
   participants <- descriptives$Value[descriptives$Statistic == "Number of participants"]
   avg_score <- descriptives$Value[descriptives$Statistic == "Average achieved score"]
@@ -44,14 +44,22 @@ build_report_html <- function(
   skew <- as.numeric(descriptives$Value[descriptives$Statistic == "Skewness"])
   sd_text <- if (as.numeric(sd_score) > 10) "considerable variability" else "relatively consistent performance"
   skew_text <- if (skew > 0.5) "positively skewed, with a tendency toward lower scores" else if (skew < -0.5) "negatively skewed, with a tendency toward higher scores" else "approximately symmetric"
+  kurt <- as.numeric(descriptives$Value[descriptives$Statistic == "Kurtosis"])
+  kurt_text <- if (kurt > 0.5) {
+    "more peaked than a normal distribution, indicating a concentration of scores near the mean and some extreme values"
+  } else if (kurt < -0.5) {
+    "flatter than a normal distribution, indicating a wider spread of scores with fewer extreme values"
+  } else {
+    "approximately normal in peakedness, indicating a balanced spread of scores around the mean"
+  }
   difficulty_range <- if (mean(item_stats$P) > 0.7) "upper" else "middle/lower"
-
+  
   # ----- Tables with coloring -----
-
+  
   # Descriptives
   desc_tab <- knitr::kable(descriptives, row.names = FALSE, format = "html", table.attr = 'class="left_table"') |>
     kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = "striped")
-
+  
   # Test stats
   test_tab <- test_stats
   test_tab$`Average P` <- kableExtra::cell_spec(test_tab$`Average P`, "html", color = ifelse(test_tab$`Average P` < 0.2, "tomato", ifelse(test_tab$`Average P` <= 0.8, "forestgreen", "tomato")))
@@ -60,7 +68,7 @@ build_report_html <- function(
   test_tab$`Cronbach's alpha` <- kableExtra::cell_spec(test_tab$`Cronbach's alpha`, "html", color = ifelse(test_tab$`Cronbach's alpha` < 0.7, "tomato", "forestgreen"))
   test_tab <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') |>
     kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
-
+  
   # Item stats
   alpha_test <- test_stats$`Cronbach's alpha`[1]
   item_tab <- item_stats
@@ -70,7 +78,7 @@ build_report_html <- function(
   item_tab$`Alpha-if-deleted` <- kableExtra::cell_spec(item_tab$`Alpha-if-deleted`, "html", color = ifelse(item_tab$`Alpha-if-deleted` < alpha_test, "forestgreen", "tomato"))
   item_tab <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') |>
     kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
-
+  
   # ----- Build HTML -----
   tagList(
     tags$html(
@@ -100,22 +108,24 @@ build_report_html <- function(
           h1(sprintf("Assessment Report: %s", name)),
           p(sprintf("Report generated on %s by %s", format(Sys.time(), "%d-%m-%Y"), examiner)),
           tags$hr(),
-
+          
           h2("1. Summary"),
           h3("1.1 Descriptive Statistics"),
           p(sprintf(
-            "This assessment included %s participants. This table shows the descriptive statistics of the scores. The average indicates the general performance, the median shows the midpoint, the standard deviation indicates how spread out scores are, and the skewness reveals if most students scored high, low, or evenly. For this assessment, the average score was %s, while the median score was %s. The standard deviation of %s indicates %s. Finally, the skewness of %s tells us the distribution is %s.",
-            participants, avg_score, median_score, sd_score, sd_text, skew, skew_text
+            "This assessment included %s participants. The average score achieved by participants was %s. This average (or mean) represents the central tendency of scores, showing what a 'typical' participant scored. The median score was %s, which is the middle value when all participants are ranked from lowest to highest. Comparing the mean and median helps identify skewness in the distribution. The standard deviation was %s, indicating %s. A high standard deviation means that participant scores vary widely, while a low standard deviation indicates that most participants scored near the mean. The skewness of the score distribution is %s, which %s. Skewness tells us whether the data lean toward higher or lower scores: positive skew suggests many low scores and few high scores, while negative skew suggests the opposite. The kurtosis is %s, which %s. Kurtosis describes the 'peakedness' of the distribution: a high kurtosis indicates many scores near the mean with few extremes, while a low kurtosis suggests a flatter distribution with more scores at the extremes.",
+            participants, avg_score, median_score, sd_score, sd_text, skew, skew_text, kurt, kurt_text
           )),
           HTML(desc_tab),
+          
           h3("1.2 Distribution of Achieved Scores"),
-          p(sprintf("The histogram shows the distribution of achieved scores, which allows for visual identification of common score ranges and highlight if many students struggled or excelled. In this case, it shows that most students achieved scores in the %s range. Any peaks at extreme ends suggest possible ceiling or floor effects that may affect discrimination between students.", difficulty_range)),
+          p(sprintf(
+            "The histogram below shows the frequency distribution of the scores achieved by all participants. The horizontal axis represents the score ranges, while the vertical axis shows how many participants achieved scores in each range. Most participants scored in the %s, which indicates where the assessment items were most effective in differentiating participants. Peaks near the maximum or minimum possible scores suggest ceiling effects (too many participants scoring very high) or floor effects (too many scoring very low), which may reduce the ability of the test to distinguish between stronger and weaker participants. By reviewing this histogram, examiners can identify whether items were too easy or too difficult and consider adjustments in future assessments.",
+            difficulty_range
+          )),
           embed_plot(hist_plot, 7, 4),
-
-          # 2 Classical Assessment Analysis
+          
           h2("2. Classical Assessment Analysis"),
-
-          # 2.1 Assessment Stats
+          
           h3("2.1 Assessments Statistics"),
           p(HTML("This table displays the key evaluation metrics for the overall assessment. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>.")),
           tags$ul(
@@ -124,8 +134,7 @@ build_report_html <- function(
             tags$li(HTML("<b>Cronbach's alpha (Internal Consistency)</b>: Values above 0.7 (green) indicate reliable measurement of the intended construct. Lower values suggest inconsistent items or that some items may not contribute effectively to overall reliability."))
           ),
           HTML(test_tab),
-
-          # 2.2 Item Stats
+          
           h3("2.2 Item Statistics"),
           p(HTML("This table summarizes the key evaluation metrics for each individual item in the assessment. The cells are colored according to the values prescribed in the <i>Guideline Assessment Analysis</i>.")),
           tags$ul(
@@ -135,15 +144,13 @@ build_report_html <- function(
             tags$li(HTML("<b>Alpha-if-deleted</b>: Shows impact on Cronbach's alpha if item removed. Red = improves reliability, Green = reduces reliability."))
           ),
           HTML(item_tab),
-
-          # 2.3 Item Difficulty & Discrimination
+          
           h3("2.3 Item Difficulty & Discrimination"),
-          p("This figure shows the item difficulty (P-values) against item discrimination (RIT). Items that are difficult and poorly discriminating may need revision, while easy items with high discrimination typically contribute positively to the assessment."),
+          p("The plot below visualizes each item's difficulty (P-value) versus discrimination (RIT). Items that are both very easy or very hard and have low discrimination may not provide useful information and could be revised. Items that are moderately difficult and highly discriminating are most valuable for assessing participants fairly."),
           embed_plot(item_plot, 9, 5),
-
-          # 2.4 Item Correlation Matrix
+          
           h3("2.4 Item Correlation Matrix"),
-          p("This heatmap shows correlations between items. Strong positive correlations (> 0.6) may indicate redundancy, while very low or negative correlations may suggest misalignment or potential errors. Items with unusual correlations should be reviewed to improve assessment quality."),
+          p("This heatmap shows correlations between all items. Strong positive correlations (>0.6) may indicate redundancy between items, while negative correlations or very low correlations may indicate potential errors, misalignment, or that items measure different constructs. Reviewing these correlations helps improve the assessment's internal consistency and validity."),
           embed_plot(corr_plot, 11, 11)
         )
       )
@@ -207,7 +214,7 @@ create_descriptives_table <- function(input, parsed) {
     totalScores <- rowSums(d)
     digits <- parsed()$digits
     maxScore <- parsed()$maxScore
-
+    
     tab <- data.frame(
       n = nrow(d),
       maxscore = paste0(parsed()$maxScore, " (100%)"),
@@ -220,7 +227,7 @@ create_descriptives_table <- function(input, parsed) {
       kurtosis = round(compute_kurtosis(totalScores), digits)
     )
   }
-
+  
   colnames(tab) <- c(
     "Number of participants", "Maximum possible score", "Minimum achieved score",
     "Maximum achieved score", "Average achieved score", "Median achieved score",
@@ -418,7 +425,7 @@ total_cronbach_alpha <- function(data) {
 # ---------------------------
 ui <- fluidPage(
   title = "Advanced Assessment Analysis",
-
+  
   # Session disconnect overlay
   shinydisconnect::disconnectMessage(
     text = "Your session has expired.",
@@ -428,7 +435,7 @@ ui <- fluidPage(
     colour = "white", refreshColour = nyenrode_blue,
     overlayColour = "#999", overlayOpacity = 0.4
   ),
-
+  
   # --- Visual theme (Bootstrap 5) ---
   theme = bslib::bs_theme(
     version = 5,
@@ -474,13 +481,13 @@ ui <- fluidPage(
     /* Spacing utilities */
     .mt-2 { margin-top: .5rem; } .mt-3 { margin-top: 1rem; } .mb-3 { margin-bottom: 1rem; }
   ", nyenrode_blue)),
-
+  
   # --- Title bar ---
   tags$div(
     class = "app-title-bar",
     tags$div(class = "app-title", "Advanced Assessment Analysis")
   ),
-
+  
   # --- Layout with persistent sidebar ---
   sidebarLayout(
     sidebarPanel(
@@ -566,41 +573,41 @@ server <- function(input, output, session) {
   observeEvent(input$refresh, {
     session$reload()
   })
-
+  
   # Data import
   rawData <- reactive({
     req(input$file)
     readxl::read_excel(path = input$file$datapath, col_names = FALSE, na = c("N/A", "n.b."))
   })
-
+  
   # Parse & clean to your spec
   parsed <- eventReactive(input$file, {
     req(rawData())
-
+    
     validate(
       need(nrow(rawData()) > 4, "File does not appear to be a valid Cirrus export.")
     )
-
+    
     dataset <- rawData()
-
+    
     digits <- 3
-
+    
     # Filter only the scores
     index_first_question <- which(!(dataset[1, ] %in% c("Vraag", "Question", NA)))[1]
     dataset <- dataset[, -c(1:(index_first_question - 1))]
     index_after_last_question <- which(dataset[4, ] == "Score")
     dataset <- dataset[, -c(index_after_last_question:ncol(dataset))]
-
+    
     questionNames <- as.character(dataset[1, ])
     questionNames <- sub(" .*", "", questionNames)
     questionMaxPoints <- as.numeric(dataset[2, ])
     maxScore <- sum(questionMaxPoints)
-
+    
     dataset <- dataset[-c(1:5), ]
     dataset <- dataset[complete.cases(dataset), ]
     colnames(dataset) <- questionNames
     dataset <- as.data.frame(apply(dataset, 2, as.numeric))
-
+    
     list(
       data = dataset,
       maxPoints = questionMaxPoints,
@@ -610,10 +617,10 @@ server <- function(input, output, session) {
       test_name = input$name
     )
   })
-
+  
   output$dataset_info <- renderUI({
     participants <- items <- maxscore <- "..."
-
+    
     if (!is.null(input$file)) {
       req(parsed())
       d <- parsed()$data
@@ -621,7 +628,7 @@ server <- function(input, output, session) {
       items <- ncol(d)
       maxscore <- parsed()$maxScore
     }
-
+    
     div(
       style = "line-height:1.2;",
       div("Participants: ", participants),
@@ -629,7 +636,7 @@ server <- function(input, output, session) {
       div("Maximum possible score: ", maxscore)
     )
   })
-
+  
   # Descriptives (reactive + UI)
   descriptives_react <- reactive(create_descriptives_table(input, parsed))
   output$descriptives <- DT::renderDataTable({
@@ -640,11 +647,11 @@ server <- function(input, output, session) {
       class = "stripe hover order-column compact row-border"
     )
   })
-
+  
   # Histogram
   histogram_react <- reactive(create_histogram(input, parsed))
   output$histogram <- renderPlot(histogram_react())
-
+  
   # Test stats
   test_stats_react <- reactive(create_test_stats(input, parsed))
   output$test_stats <- DT::renderDataTable({
@@ -690,7 +697,7 @@ server <- function(input, output, session) {
         )
       )
   })
-
+  
   # Item stats
   item_stats_react <- reactive(create_item_stats(input, parsed))
   output$item_stats <- DT::renderDataTable({
@@ -729,15 +736,15 @@ server <- function(input, output, session) {
         )
       )
   })
-
+  
   # Item plot
   item_plot_react <- reactive(create_item_plot(input, parsed))
   output$item_plot <- renderPlot(item_plot_react())
-
+  
   # Correlation heatmap
   corr_plot_react <- reactive(create_corr_plot(input, parsed))
   output$corr_plot <- renderPlot(corr_plot_react())
-
+  
   # Export (HTML report via R Markdown template)
   output$export <- downloadHandler(
     filename = function() paste0("assessment_report_", input$name, ".html"),
@@ -745,7 +752,7 @@ server <- function(input, output, session) {
       withProgress(message = "Generating report...", value = 0, {
         # Step 1: Copy the Rmd template
         incProgress(0.3, detail = "Copying template...")
-
+        
         report <- build_report_html(
           input$name,
           input$name_examiner,
@@ -756,12 +763,12 @@ server <- function(input, output, session) {
           item_plot_react(),
           corr_plot_react()
         )
-
+        
         # Step 2: Render HTML
         incProgress(0.3, detail = "Rendering HTML...")
-
+        
         htmltools::save_html(report, file)
-
+        
         # Step 4: Finish
         incProgress(1, detail = "Done!")
       })
