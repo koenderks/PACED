@@ -42,7 +42,6 @@ build_report_html <- function(
   median_score <- descriptives$Value[descriptives$Statistic == "Median achieved score"]
   sd_score <- descriptives$Value[descriptives$Statistic == "Standard deviation"]
   skew <- as.numeric(descriptives$Value[descriptives$Statistic == "Skewness"])
-  sd_text <- if (as.numeric(sd_score) > 10) "considerable variability" else "relatively consistent performance"
   skew_text <- if (skew > 0.5) "positively skewed, with a tendency toward lower scores" else if (skew < -0.5) "negatively skewed, with a tendency toward higher scores" else "approximately symmetric"
   kurt <- as.numeric(descriptives$Value[descriptives$Statistic == "Kurtosis"])
   kurt_text <- if (kurt > 0.5) {
@@ -52,7 +51,7 @@ build_report_html <- function(
   } else {
     "approximately normal in peakedness, indicating a balanced spread of scores around the mean"
   }
-  difficulty_range <- if (mean(item_stats$P) > 0.7) "upper" else "middle/lower"
+  difficulty_range <- if (mean(item_stats$P) > 0.7) "upper range (>70%)" else if (mean(item_stats$P) <= 0.7 & mean(item_stats$P) > 0.5) "middle range (>50% & <70%) (" else "lower range (<50%)"
 
   # ----- Tables with coloring -----
 
@@ -112,26 +111,26 @@ build_report_html <- function(
       tags$body(
         tags$div(
           id = "report_container",
-          h1(sprintf("Assessment Report: %s", name)),
-          p(sprintf("Report generated on %s by %s", format(Sys.time(), "%d-%m-%Y"), examiner)),
+          h1(sprintf("Psychometric report for %s", if (name == "") "....." else name)),
+          p(sprintf("Report generated on %s by %s", format(Sys.time(), "%d-%m-%Y"), if (examiner == "") "....." else examiner)),
           tags$hr(),
           h2("1. Summary"),
           p("This section provides an overview of the assessment results and key characteristics of the score distribution."),
           h3("1.1 Descriptive Statistics"),
           p(sprintf("The assessment included %s participants. The table below summarizes key descriptive statistics of their achieved scores.", participants)),
           tags$ul(
-            tags$li(p(sprintf("The average represents the central tendency of the scores and reflects the typical performance level. The average score was %s.", avg_score))),
-            tags$li(p(sprintf("The median is the middle score when all participants are ordered from lowest to highest. The median score was %s.", median_score))),
-            tags$li(p(sprintf("The standard deviation measures the spread of scores around the mean. Higher values indicate greater variability, while lower values indicate scores clustered near the mean. The standard deviation was %s, indicating %s.", sd_score, sd_text))),
-            tags$li(p(sprintf("Skewness indicates whether the distribution is weighted toward higher or lower scores. Positive skew reflects more low scores and fewer high scores, while negative skew indicates the opposite. The skewness was %s, which %s.", skew, skew_text))),
-            tags$li(p(sprintf("Kurtosis describes the peakedness of the distribution. Higher values indicate a stronger concentration of scores near the mean with more extreme values, while lower values indicate a flatter distribution. The kurtosis was %s, which %s.", kurt, kurt_text)))
+            tags$li(p(sprintf("The average score of %s represents the central tendency of the scores and reflects the typical performance level.", avg_score))),
+            tags$li(p(sprintf("The median of %s is the middle score when all participants are ordered from lowest to highest.", median_score))),
+            tags$li(p(sprintf("The standard deviation of %s measures the spread of scores around the average. Higher values indicate greater variability, while lower values indicate scores clustered near the mean.", sd_score))),
+            tags$li(p(sprintf("The skewness of %s indicates that the distribution is %s. Positive skew reflects more low scores and fewer high scores, while negative skew indicates the opposite.", skew, skew_text))),
+            tags$li(p(sprintf("The kurtosis of %s means the distribution is %s. Higher values indicate a stronger concentration of scores near the mean with more extreme values, while lower values indicate a flatter distribution.", kurt, kurt_text)))
           ),
           HTML(desc_tab),
           h3("1.2 Distribution of Achieved Scores"),
-          p("The histogram below shows the distribution of participant scores. The horizontal axis represents score ranges, and the vertical axis indicates the number of participants within each range."),
+          p("The histogram below visualizes the distribution of participant scores. The horizontal axis represents score ranges, and the vertical axis indicates the number of participants within each range."),
           tags$ul(
-            tags$li(sprintf("Most participants scored in the %s range, indicating that this range was most effective in differentiating participant performance.", difficulty_range)),
-            tags$li(p("Peaks near the maximum or minimum possible scores may indicate ceiling effects (many very high scores) or floor effects (many very low scores), which can reduce the assessment’s ability to distinguish between stronger and weaker participants.")),
+            tags$li(sprintf("Most participants scored in the %s, indicating that this range was most effective in differentiating participant performance.", difficulty_range)),
+            tags$li(p("Look out for peaks near the maximum or minimum possible scores, as this may indicate ceiling effects (many very high scores) or floor effects (many very low scores), which can impact the assessment’s ability to distinguish between stronger and weaker participants.")),
             tags$li(p("Multiple peaks in the distribution may indicate heterogeneous participant groups with different performance levels.")),
           ),
           embed_plot(hist_plot, 7, 4),
@@ -238,7 +237,7 @@ create_descriptives_table <- function(input, parsed) {
       max = paste0(round(max(totalScores), digits), " (", paste0(round(max(totalScores) / maxScore * 100, digits), "%"), ")"),
       mean = paste0(round(mean(totalScores), digits), " (", paste0(round(mean(totalScores) / maxScore * 100, digits), "%"), ")"),
       median = paste0(round(median(totalScores), digits), " (", paste0(round(median(totalScores) / maxScore * 100, digits), "%"), ")"),
-      sd = round(sd(totalScores), digits),
+      sd = paste0(round(sd(totalScores), digits), " (", paste0(round(sd(totalScores) / maxScore * 100, digits), "%"), ")"),
       skewness = round(compute_skewness(totalScores), digits),
       kurtosis = round(compute_kurtosis(totalScores), digits)
     )
@@ -268,11 +267,12 @@ create_histogram <- function(input, parsed) {
     totalScores <- rowSums(d)
     maxScore <- parsed()$maxScore
     xBreaks <- pretty(c(0, maxScore), min.n = 4)
+    xLabels <- paste0(xBreaks, " (", round(xBreaks / maxScore * 100, 2) ,"%)")
     h <- hist(c(0, totalScores, maxScore), breaks = 30, plot = FALSE)
     yBreaks <- pretty(c(0, h$counts * 1.25), min.n = 4)
     p <- ggplot2::ggplot(data.frame(x = totalScores), ggplot2::aes(x = x)) +
       ggplot2::geom_histogram(bins = 30, color = "black", fill = "lightgray") +
-      ggplot2::scale_x_continuous(name = "Achieved score", limits = c(-0.5, max(xBreaks) + 0.5), breaks = xBreaks) +
+      ggplot2::scale_x_continuous(name = "Achieved score", limits = c(-0.5, max(xBreaks) + 0.5), breaks = xBreaks, labels = xLabels) +
       ggplot2::scale_y_continuous(name = "Frequency", limits = c(0, max(yBreaks)), breaks = yBreaks) +
       ggplot2::geom_segment(y = -Inf, yend = -Inf, x = 0, xend = max(xBreaks)) +
       ggplot2::geom_segment(x = -Inf, xend = -Inf, y = 0, yend = max(yBreaks)) +
