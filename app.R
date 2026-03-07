@@ -110,7 +110,8 @@ build_report_html <- function(
           table { border-collapse: collapse; width: 100%; }
           .left_table th { white-space: nowrap; text-align: left !important; vertical-align: middle !important; color: #00205B !important; background: #f4f6fb; border: 0.5px solid #ddd; padding: 6px; }
           .center_table th { text-align: center !important; vertical-align: middle !important; color: #00205B !important; background: #f4f6fb; border: 0.5px solid #ddd; padding: 6px; }
-          .left_table td { text-align: justify !important; vertical-align: middle !important; border: 0.5px solid #ddd; padding: 6px; }
+          .left_table td { text-align: left !important; vertical-align: middle !important; border: 0.5px solid #ddd; padding: 6px; }
+          .left_table td:nth-child(3) { text-align: justify !important; }
           .center_table td { text-align: center !important; vertical-align: middle !important; border: 0.5px solid #ddd; padding: 6px; }
           img { max-width: 100%; display: block; margin: 10px auto; }
             /* ---------- PRINT LAYOUT (PDF) ---------- */
@@ -959,7 +960,7 @@ server <- function(input, output, session) {
 
   # Export (HTML report via R Markdown template)
   output$export <- downloadHandler(
-    filename = function() paste0("assessment_report_", input$name, ".html"),
+    filename = function() paste0("Psychometric Report ", input$name, ".html"),
     content = function(file) {
       withProgress(message = "Generating report...", value = 0, {
         # Step 1: Copy the Rmd template
