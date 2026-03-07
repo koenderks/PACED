@@ -100,18 +100,18 @@ build_report_html <- function(
   # ----- Guideline discrepancy summary -----
   if (!is.null(flagged_items) && nrow(flagged_items) > 0 && flagged_items$`Item (Cirrus ID)`[1] != "None") {
     issues <- flagged_items$Issue
-    n_difficult  <- sum(grepl("Very difficult item", issues))
-    n_easy       <- sum(grepl("Very easy item", issues))
-    n_low_disc   <- sum(grepl("Low discrimination", issues))
-    n_neg_disc   <- sum(grepl("Negative discrimination", issues))
-    n_alpha      <- sum(grepl("Reduces test reliability", issues))
-    n_neg_rir    <- sum(grepl("Negative item-rest correlation", issues))
+    n_difficult <- sum(grepl("Very difficult item", issues))
+    n_easy <- sum(grepl("Very easy item", issues))
+    n_low_disc <- sum(grepl("Low discrimination", issues))
+    n_neg_disc <- sum(grepl("Negative discrimination", issues))
+    n_alpha <- sum(grepl("Reduces test reliability", issues))
+    n_neg_rir <- sum(grepl("Negative item-rest correlation", issues))
     n_total <- length(unique(flagged_items$`Item (Cirrus ID)`))
   } else {
     n_difficult <- n_easy <- n_low_disc <- n_neg_disc <- n_alpha <- n_neg_rir <- 0
     n_total <- 0
   }
-  
+
   # ----- Build HTML -----
   tagList(
     tags$html(
@@ -916,7 +916,7 @@ server <- function(input, output, session) {
 
   # Export (HTML report via R Markdown template)
   output$export <- downloadHandler(
-    filename = function() paste0("Psychometric Report", if(input$name != "") paste0(" ", input$name) else NULL, ".html"),
+    filename = function() paste0("Psychometric Report", if (input$name != "") paste0(" ", input$name) else NULL, ".html"),
     content = function(file) {
       withProgress(message = "Generating report...", value = 0, {
         incProgress(0.3, detail = "Copying template...")
