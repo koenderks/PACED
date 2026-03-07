@@ -506,42 +506,48 @@ create_flagged_items <- function(input, parsed) {
       explanations <- c()
       if (P < 0.2) {
         issues <- c(issues, "Very difficult item")
-        explanations <- c(explanations,
-                          "Less than 20% of participants answered correctly, suggesting the item may be ambiguous, miskeyed, or cover material not sufficiently taught."
+        explanations <- c(
+          explanations,
+          "Less than 20% of participants answered correctly, suggesting the item may be ambiguous, miskeyed, or cover material not sufficiently taught."
         )
       }
       if (P > 0.8) {
         issues <- c(issues, "Very easy item")
-        explanations <- c(explanations,
-                          "More than 80% of participants answered correctly, meaning the item provides limited discrimination between participants."
+        explanations <- c(
+          explanations,
+          "More than 80% of participants answered correctly, meaning the item provides limited discrimination between participants."
         )
       }
       if (RIT < 0) {
         issues <- c(issues, "Negative discrimination")
-        explanations <- c(explanations,
-                          "Item-total correlation is negative, indicating that lower-performing participants answered correctly more often than higher-performing participants."
+        explanations <- c(
+          explanations,
+          "Item-total correlation is negative, indicating that lower-performing participants answered correctly more often than higher-performing participants."
         )
       }
       if (RIT >= 0 & RIT < 0.2) {
         issues <- c(issues, "Low discrimination")
-        explanations <- c(explanations,
-                          "Item-total correlation is below 0.20, indicating weak ability to distinguish between stronger and weaker participants."
+        explanations <- c(
+          explanations,
+          "Item-total correlation is below 0.20, indicating weak ability to distinguish between stronger and weaker participants."
         )
       }
       if (alpha_drop > alpha_test) {
         issues <- c(issues, "Reduces test reliability")
-        explanations <- c(explanations,
-                          "Cronbach’s alpha increases when this item is removed, suggesting the item may not align well with the construct measured by the assessment."
+        explanations <- c(
+          explanations,
+          "Cronbach’s alpha increases when this item is removed, suggesting the item may not align well with the construct measured by the assessment."
         )
       }
       if (RIR < 0) {
         issues <- c(issues, "Negative item-rest correlation")
-        explanations <- c(explanations,
-                          "The item correlates negatively with the rest of the assessment, suggesting potential scoring errors or content misalignment."
+        explanations <- c(
+          explanations,
+          "The item correlates negatively with the rest of the assessment, suggesting potential scoring errors or content misalignment."
         )
       }
       if (length(issues) > 0) {
-        flagged[[length(flagged)+1]] <- data.frame(
+        flagged[[length(flagged) + 1]] <- data.frame(
           Item = item,
           Issue = paste(unique(issues), collapse = "; "),
           Explanation = paste(unique(explanations), collapse = " "),
@@ -554,7 +560,7 @@ create_flagged_items <- function(input, parsed) {
     if (!is.null(tab) && nrow(tab) > 0) {
       # Order by number of issues descending
       tab <- tab[order(-tab$NumIssues), ]
-      tab$NumIssues <- NULL  # remove helper column
+      tab$NumIssues <- NULL # remove helper column
     } else {
       tab <- data.frame(
         Item = "None",
