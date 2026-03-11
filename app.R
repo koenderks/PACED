@@ -122,7 +122,7 @@ i18n <- list(
 
     # Report: paragraphs & bullets
     report_generated_on = "Generated on %s by %s",
-    report_summary_intro_html = "According to the <i>Guideline Assessment Analysis</i>, %s out of %s item(s) (%s%%) show one or more psychometric discrepancies and may provide useful insights when reviewed.",
+    report_summary_intro_html = "According to the <i>Guideline Assessment Analysis</i>, %s out of %s items (%s%%) show one or more psychometric discrepancies and may provide useful insights when reviewed.",
     report_bullet_very_difficult = "%s item(s) are very difficult.",
     report_bullet_very_easy = "%s item(s) are very easy.",
     report_bullet_low_disc = "%s item(s) show low discrimination.",
@@ -171,7 +171,7 @@ i18n <- list(
     diff_middle = "middle range (>50% & <70%)",
     diff_lower = "lower range (<50%)",
 
-    # Report: table column localizations (we'll apply in report only)
+    # Report: table column localizations
     col_statistic = "Statistic",
     col_value = "Value",
     col_avgP = "Average P",
@@ -262,13 +262,13 @@ i18n <- list(
 
     # Report: paragraphs & bullets
     report_generated_on = "Gegenereerd op %s door %s",
-    report_summary_intro_html = "Volgens de <i>Richtlijn Toetsanalyse</i> vertonen %s van de %s item(s) (%s%%) één of meer psychometrische afwijkingen en kunnen bij inspectie waardevolle inzichten opleveren.",
-    report_bullet_very_difficult = "%s item(s) zijn zeer moeilijk.",
-    report_bullet_very_easy = "%s item(s) zijn zeer makkelijk.",
-    report_bullet_low_disc = "%s item(s) vertonen lage discriminatie.",
-    report_bullet_neg_disc = "%s item(s) vertonen negatieve discriminatie.",
-    report_bullet_neg_rir = "%s item(s) vertonen een negatieve item‑restcorrelatie.",
-    report_bullet_alpha = "%s item(s) verlagen de interne consistentie.",
+    report_summary_intro_html = "Volgens de <i>Richtlijn Toetsanalyse</i> vertonen %s van de %s vragen (%s%%) één of meer psychometrische afwijkingen en kunnen bij inspectie waardevolle inzichten opleveren.",
+    report_bullet_very_difficult = "%s vragen zijn zeer moeilijk.",
+    report_bullet_very_easy = "%s vragen zijn zeer makkelijk.",
+    report_bullet_low_disc = "%s vragen vertonen lage discriminatie.",
+    report_bullet_neg_disc = "%s vragen vertonen negatieve discriminatie.",
+    report_bullet_neg_rir = "%s vragen vertonen een negatieve item‑restcorrelatie.",
+    report_bullet_alpha = "%s vragen verlagen de interne consistentie.",
     report_desc_intro = "Deze sectie geeft een overzicht van de toetsresultaten en de belangrijkste kenmerken van de scoreverdeling.",
     report_desc_11_intro = "Aan de toets namen %s deelnemers deel. De onderstaande tabel vat de belangrijkste beschrijvende statistieken van de behaalde scores samen.",
     report_desc_11_b1 = "De gemiddelde score van %s geeft de centrale tendens weer en reflecteert het typische prestatieniveau.",
