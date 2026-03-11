@@ -240,7 +240,7 @@ i18n <- list(
     assessment_name_ph = "bijv. Statistical Reasoning - Eindtoets",
     assessment_date = "Toetsdatum",
     examiner = "Examinator",
-    examiner_ph = "bijv. Eric Xaminer",
+    examiner_ph = "bijv. Eric Xaminator",
     refresh = "Reset",
     download_report = "Download rapport",
 

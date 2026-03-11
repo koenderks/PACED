@@ -22,7 +22,7 @@ jobs:
       pages: write # to deploy to Pages
       id-token: write # to verify the deployment originates from an appropriate source
 
-  patch_favicon:
+  patch:
       needs: shinylive
       runs-on: ubuntu-latest
 
@@ -32,13 +32,16 @@ jobs:
         contents: read
 
       steps:
-        - name: Download built artifact from reusable workflow
-          uses: actions/download-pages-artifact@v3
+        - name: Download site artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: github-pages
+            path: site
 
-        - name: Inject favicon links into index.html
+        - name: Inject favicon
           run: |
-            INDEX_FILE="index.html"
-            TMP_FILE="${INDEX_FILE}.tmp"
+            INDEX="site/index.html"
+            TMP="${INDEX}.tmp"
 
             awk '
               /<\/head>/ {
@@ -46,11 +49,11 @@ jobs:
                 print "    <link rel=\"icon\" type=\"image/png\" href=\"favicon.png\">"
               }
               { print }
-            ' "$INDEX_FILE" > "$TMP_FILE"
+            ' "$INDEX" > "$TMP"
 
-            mv "$TMP_FILE" "$INDEX_FILE"
+            mv "$TMP" "$INDEX"
 
-        - name: Upload patched site artifact
+        - name: Upload patched artifact
           uses: actions/upload-pages-artifact@v3
           with:
-            path: ./
+            path: site
