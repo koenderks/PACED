@@ -21,39 +21,3 @@ jobs:
     permissions:
       pages: write # to deploy to Pages
       id-token: write # to verify the deployment originates from an appropriate source
-
-  patch:
-      needs: shinylive
-      runs-on: ubuntu-latest
-
-      permissions:
-        pages: write
-        id-token: write
-        contents: read
-
-      steps:
-        - name: Download site artifact
-          uses: actions/download-artifact@v4
-          with:
-            name: github-pages
-            path: site
-
-        - name: Inject favicon
-          run: |
-            INDEX="site/index.html"
-            TMP="${INDEX}.tmp"
-
-            awk '
-              /<\/head>/ {
-                print "    <link rel=\"icon\" type=\"image/x-icon\" href=\"favicon.ico\">"
-                print "    <link rel=\"icon\" type=\"image/png\" href=\"favicon.png\">"
-              }
-              { print }
-            ' "$INDEX" > "$TMP"
-
-            mv "$TMP" "$INDEX"
-
-        - name: Upload patched artifact
-          uses: actions/upload-pages-artifact@v3
-          with:
-            path: site
