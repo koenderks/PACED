@@ -21,3 +21,26 @@ jobs:
     permissions:
       pages: write # to deploy to Pages
       id-token: write # to verify the deployment originates from an appropriate source
+
+    with:
+      post-build: |
+        echo "Injecting favicon into index.html …"
+
+        # Path to the generated index.html (adjust if needed)
+        INDEX_FILE="site/index.html"
+
+        # Insert favicon links before </head>
+        # Create a temp file for safe replacement
+        TMP_FILE="${INDEX_FILE}.tmp"
+
+        awk '
+          /<\/head>/ {
+            print "    <link rel=\"icon\" type=\"image/x-icon\" href=\"favicon.ico\">"
+            print "    <link rel=\"icon\" type=\"image/png\" href=\"favicon.png\">"
+          }
+          { print }
+        ' "$INDEX_FILE" > "$TMP_FILE"
+
+        mv "$TMP_FILE" "$INDEX_FILE"
+
+        echo "Favicon successfully injected."

@@ -1204,16 +1204,8 @@ ui <- fluidPage(
   title = "PACED",
   tags$script(HTML("window.parent.document.title = 'PACED';")),
   tags$head(
-    tags$link(
-      rel = "shortcut icon",
-      type = "image/x-icon",
-      href = "favicon.ico"
-    ),
-    tags$link(
-      rel = "shortcut icon",
-      type = "image/png",
-      href = "favicon.png"
-    )
+    tags$link(rel = "shortcut icon", type = "image/x-icon", href = "favicon.ico"),
+    tags$link(rel = "shortcut icon", type = "image/png", href = "favicon.png")
   ),
   tags$script(HTML("
   $(document).on('shiny:value', function(e) {
