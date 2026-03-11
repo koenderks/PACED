@@ -1165,6 +1165,42 @@ build_report_html <- function(
 # UI
 # ---------------------------
 ui <- fluidPage(
+  
+  tags$head(
+    tags$style(HTML("
+      /* Full-page overlay */
+      #preloader-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: white;    /* or rgba(...) */
+        z-index: 99999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Spinner */
+      .loader {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #00205B;   /* Nyenrode blue */
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    "))
+  ),
+  
+  # Preloader div (visible immediately)
+  div(id = "preloader-overlay",
+      div(class = "loader")
+  ),
   title = "PACED",
   tags$script(HTML("window.parent.document.title = 'PACED';")),
   tags$script(HTML("
@@ -1252,7 +1288,12 @@ ui <- fluidPage(
   $(document).on('shiny:value', removeBeforeUnload);
 
   // Re-run every 250ms (safest: catches late-added handlers)
-  setInterval(removeBeforeUnload, 250);"))
+  setInterval(removeBeforeUnload, 250);")),
+  tags$script(HTML("
+  // Hide preloader once Shiny is fully loaded
+  $(document).on('shiny:connected', function(){
+    $('#preloader-overlay').fadeOut(300);
+  });"))
 )
 
 # ---------------------------
@@ -1423,13 +1464,13 @@ server <- function(input, output, session) {
       tabPanel(
         title = t("tab1", cur),
         br(),
-        section_card(t("s11", cur), shinycssloaders::withSpinner(DT::dataTableOutput("descriptives"), type = 4, color = nyenrode_blue, hide.ui = FALSE)),
-        section_card(t("s12", cur), div(style = "width: 100%; margin: 0 auto;", shinycssloaders::withSpinner(plotOutput("histogram", width = "100%"), type = 4, color = nyenrode_blue, hide.ui = FALSE)))
+        section_card(t("s11", cur), shinycssloaders::withSpinner(DT::dataTableOutput("descriptives"), type = 7, color = nyenrode_blue, hide.ui = FALSE)),
+        section_card(t("s12", cur), div(style = "width: 100%; margin: 0 auto;", shinycssloaders::withSpinner(plotOutput("histogram", width = "100%"), type = 7, color = nyenrode_blue, hide.ui = FALSE)))
       ),
       tabPanel(
         title = t("tab2", cur),
         br(),
-        section_card(t("s21", cur), div(style = "padding: 0;", shinycssloaders::withSpinner(DT::dataTableOutput("test_stats"), type = 4, color = nyenrode_blue, hide.ui = FALSE))),
+        section_card(t("s21", cur), div(style = "padding: 0;", shinycssloaders::withSpinner(DT::dataTableOutput("test_stats"), type = 7, color = nyenrode_blue, hide.ui = FALSE))),
         section_card(
           t("s22", cur),
           DT::dataTableOutput("item_stats"),
@@ -1437,8 +1478,8 @@ server <- function(input, output, session) {
             style = "width: 100%; margin: 0 auto;",
             plotOutput("item_plot", width = "100%"),
             fluidRow(
-              column(6, shinycssloaders::withSpinner(plotOutput("difficulty_dist", width = "100%"), type = 4, color = nyenrode_blue, hide.ui = FALSE)),
-              column(6, shinycssloaders::withSpinner(plotOutput("discrimination_dist", width = "100%"), type = 4, color = nyenrode_blue, hide.ui = FALSE))
+              column(6, shinycssloaders::withSpinner(plotOutput("difficulty_dist", width = "100%"), type = 7, color = nyenrode_blue, hide.ui = FALSE)),
+              column(6, shinycssloaders::withSpinner(plotOutput("discrimination_dist", width = "100%"), type = 7, color = nyenrode_blue, hide.ui = FALSE))
             )
           )
         ),
@@ -1446,15 +1487,15 @@ server <- function(input, output, session) {
           t("s23", cur),
           div(
             style = "width: 100%; margin: 0 auto;",
-            shinycssloaders::withSpinner(plotOutput("corr_plot", width = "100%", height = "1000px"), type = 4, color = nyenrode_blue, hide.ui = FALSE),
-            shinycssloaders::withSpinner(DT::dataTableOutput("high_cor_items"), type = 4, color = nyenrode_blue, hide.ui = FALSE)
+            shinycssloaders::withSpinner(plotOutput("corr_plot", width = "100%", height = "1000px"), type = 7, color = nyenrode_blue, hide.ui = FALSE),
+            shinycssloaders::withSpinner(DT::dataTableOutput("high_cor_items"), type = 7, color = nyenrode_blue, hide.ui = FALSE)
           )
         )
       ),
       tabPanel(
         title = t("tab3", cur),
         br(),
-        shinycssloaders::withSpinner(DT::dataTableOutput("flagged_items"), type = 4, color = nyenrode_blue, hide.ui = FALSE)
+        shinycssloaders::withSpinner(DT::dataTableOutput("flagged_items"), type = 7, color = nyenrode_blue, hide.ui = FALSE)
       )
     )
   })
