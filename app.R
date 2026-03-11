@@ -1197,20 +1197,18 @@ ui <- fluidPage(
     "))
   ),
   
-  tags$head(
-    tags$link(
-      rel = "icon",
-      type = "image/x-ico",
-      href = "https://raw.githubusercontent.com/koenderks/PACED/main/favicon.ico"
-    )
-  ),
-  
   # Preloader div (visible immediately)
   div(id = "preloader-overlay",
       div(class = "loader")
   ),
   title = "PACED",
   tags$script(HTML("window.parent.document.title = 'PACED';")),
+  tags$script(HTML("
+  var link = window.parent.document.querySelector(\"link[rel='icon']\") ||
+             window.parent.document.createElement('link');
+  link.rel = 'icon';
+  link.href = 'https://raw.githubusercontent.com/koenderks/PACED/main/favicon.ico';
+  window.parent.document.head.appendChild(link);")),
   tags$script(HTML("
   $(document).on('shiny:value', function(e) {
     if (e.name === 'sidebar_ui') {
