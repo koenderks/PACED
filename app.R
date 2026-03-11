@@ -1205,12 +1205,12 @@ ui <- fluidPage(
   tags$script(HTML("window.parent.document.title = 'PACED';")),
   tags$head(
     tags$link(
-      rel = "icon",
+      rel = "shortcut icon",
       type = "image/x-icon",
       href = "favicon.ico"
     ),
     tags$link(
-      rel = "icon",
+      rel = "shortcut icon",
       type = "image/png",
       href = "favicon.png"
     )
