@@ -1175,13 +1175,6 @@ ui <- fluidPage(
       }
     }
   });")),
-  tags$script(HTML("
-  window.onbeforeunload = null;
-  const originalAddEventListener = window.addEventListener;
-  window.addEventListener = function(type, listener, options) {
-    if (type === 'beforeunload') return;
-    return originalAddEventListener.apply(this, arguments);
-  };")),
   # --- Visual theme (Bootstrap 5) ---
   theme = bslib::bs_theme(
     version = 5,
@@ -1234,7 +1227,17 @@ ui <- fluidPage(
     mainPanel(
       uiOutput("main_ui")
     )
-  )
+  ),
+  tags$script(HTML("
+  // Override addEventListener so nothing can ever register beforeunload again
+  const originalAdd = window.addEventListener;
+  window.addEventListener = function(type, listener, options) {
+    if (type === 'beforeunload') return;
+    return originalAdd.apply(this, arguments);
+  };
+
+  // Remove any existing one
+  window.onbeforeunload = null;"))
 )
 
 # ---------------------------
