@@ -12,6 +12,7 @@ if (FALSE) {
   library(kableExtra)
   library(htmltools)
   library(base64enc)
+  library(shinycssloaders)
 }
 
 # ------------------------------------
@@ -1225,19 +1226,33 @@ ui <- fluidPage(
       width = 4
     ),
     mainPanel(
-      uiOutput("main_ui")
+      shinycssloaders::withSpinner(uiOutput("main_ui"), type = 4, color = nyenrode_blue)
     )
   ),
   tags$script(HTML("
-  // Override addEventListener so nothing can ever register beforeunload again
-  const originalAdd = window.addEventListener;
-  window.addEventListener = function(type, listener, options) {
-    if (type === 'beforeunload') return;
-    return originalAdd.apply(this, arguments);
+  // Continuously remove any beforeunload handlers that appear
+  const removeBeforeUnload = () => {
+    window.onbeforeunload = null;
+
+    // Remove all listeners of type beforeunload added via addEventListener
+    const clone = window.cloneNode;
+    if (clone) {
+      // Deep clone window to strip event listeners – hacky but effective
+      const newWindow = clone.call(window, true);
+    }
   };
 
-  // Remove any existing one
-  window.onbeforeunload = null;"))
+  // Run immediately
+  removeBeforeUnload();
+
+  // Run after Shiny initializes
+  $(document).on('shiny:connected', removeBeforeUnload);
+
+  // Run after any UI update (e.g. language switch)
+  $(document).on('shiny:value', removeBeforeUnload);
+
+  // Re-run every 250ms (safest: catches late-added handlers)
+  setInterval(removeBeforeUnload, 250);"))
 )
 
 # ---------------------------
@@ -1408,13 +1423,13 @@ server <- function(input, output, session) {
       tabPanel(
         title = t("tab1", cur),
         br(),
-        section_card(t("s11", cur), DT::dataTableOutput("descriptives")),
-        section_card(t("s12", cur), div(style = "width: 100%; margin: 0 auto;", plotOutput("histogram", width = "100%")))
+        section_card(t("s11", cur), shinycssloaders::withSpinner(DT::dataTableOutput("descriptives"), type = 4, color = nyenrode_blue)),
+        section_card(t("s12", cur), div(style = "width: 100%; margin: 0 auto;", shinycssloaders::withSpinner(plotOutput("histogram", width = "100%"), type = 4, color = nyenrode_blue)))
       ),
       tabPanel(
         title = t("tab2", cur),
         br(),
-        section_card(t("s21", cur), div(style = "padding: 0;", DT::dataTableOutput("test_stats"))),
+        section_card(t("s21", cur), div(style = "padding: 0;", shinycssloaders::withSpinner(DT::dataTableOutput("test_stats"), type = 4, color = nyenrode_blue))),
         section_card(
           t("s22", cur),
           DT::dataTableOutput("item_stats"),
@@ -1422,8 +1437,8 @@ server <- function(input, output, session) {
             style = "width: 100%; margin: 0 auto;",
             plotOutput("item_plot", width = "100%"),
             fluidRow(
-              column(6, plotOutput("difficulty_dist", width = "100%")),
-              column(6, plotOutput("discrimination_dist", width = "100%"))
+              column(6, shinycssloaders::withSpinner(plotOutput("difficulty_dist", width = "100%"), type = 4, color = nyenrode_blue)),
+              column(6, shinycssloaders::withSpinner(plotOutput("discrimination_dist", width = "100%"), type = 4, color = nyenrode_blue))
             )
           )
         ),
@@ -1431,15 +1446,15 @@ server <- function(input, output, session) {
           t("s23", cur),
           div(
             style = "width: 100%; margin: 0 auto;",
-            plotOutput("corr_plot", width = "100%", height = "1000px"),
-            DT::dataTableOutput("high_cor_items")
+            shinycssloaders::withSpinner(plotOutput("corr_plot", width = "100%", height = "1000px"), type = 4, color = nyenrode_blue),
+            shinycssloaders::withSpinner(DT::dataTableOutput("high_cor_items"), type = 4, color = nyenrode_blue)
           )
         )
       ),
       tabPanel(
         title = t("tab3", cur),
         br(),
-        DT::dataTableOutput("flagged_items")
+        shinycssloaders::withSpinner(DT::dataTableOutput("flagged_items"), type = 4, color = nyenrode_blue)
       )
     )
   })
