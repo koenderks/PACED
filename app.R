@@ -1322,17 +1322,27 @@ server <- function(input, output, session) {
   # Title bar with top-right language toggle
   output$title_bar <- renderUI({
     cur <- lang()
-
+    
     tags$div(
       class = "app-title-bar",
       tags$div(
         class = "app-title-bar-inner",
-        tags$div(class = "app-title", t("app_title", cur)),
+        
+        # --- TITLE + LOGO ---
+        tags$div(
+          class = "app-title",
+          style = "display: flex; align-items: center; gap: 12px;",
+          tags$img(
+            src = "logo.png",
+            style = "height: 40px; width: auto;"
+          ),
+          t("app_title", cur)
+        ),
+        
+        # --- LANGUAGE TOGGLE (unchanged) ---
         tags$div(
           class = "lang-toggle",
           style = "display: inline-flex; border: 1px solid #ccc; border-radius: 25px; overflow: hidden;",
-
-          # Dutch button
           actionButton(
             "lang_nl",
             label = "NL",
@@ -1345,8 +1355,6 @@ server <- function(input, output, session) {
               "font-weight: 700;"
             )
           ),
-
-          # English button
           actionButton(
             "lang_en",
             label = "EN",
