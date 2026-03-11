@@ -390,7 +390,6 @@ section_card <- function(title, ..., subtitle = NULL, full_width = TRUE) {
     bslib::card_header(
       tags$div(
         class = "card-title-row",
-        tags$span(class = "card-dot"),
         tags$span(class = "card-title", title),
         if (!is.null(subtitle)) tags$span(class = "card-subtitle", subtitle)
       )
@@ -1167,6 +1166,15 @@ build_report_html <- function(
 ui <- fluidPage(
   title = "PACED",
   tags$script(HTML("window.parent.document.title = 'PACED';")),
+  tags$script(HTML("
+  $(document).on('shiny:value', function(e) {
+    if (e.name === 'sidebar_ui') {
+      var el = document.querySelector('.sidebar');
+      if (el && !el.classList.contains('sidebar-ready')) {
+        el.classList.add('sidebar-ready');
+      }
+    }
+  });")),
   # --- Visual theme (Bootstrap 5) ---
   theme = bslib::bs_theme(
     version = 5,
@@ -1185,7 +1193,8 @@ ui <- fluidPage(
     .app-title-bar-inner { display:flex; align-items:center; justify-content: space-between; }
     .app-title {font-weight: 800; font-size: 1.75rem; letter-spacing: .4px;}
     .lang-toggle .btn { color:#00205B; background:#fff; border:none; font-weight:700; }
-    .sidebar { background-color: #f7f9fc; border-right: 1px solid #e6e9ef; }
+    .sidebar { visibility: hidden; background-color: #f7f9fc; border-right: 1px solid #e6e9ef; }
+    .sidebar.sidebar-ready { visibility: visible; }
     .sidebar h2 { color: %1$s; font-size: 1.25rem; margin-top: 0; }
     .sidebar .btn, .sidebar .form-control { border-radius: .4rem; }
     .sidebar .btn-primary { background-color: %1$s; border-color: %1$s; }
