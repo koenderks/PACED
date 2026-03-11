@@ -1473,7 +1473,7 @@ server <- function(input, output, session) {
         section_card(t("s21", cur), div(style = "padding: 0;", shinycssloaders::withSpinner(DT::dataTableOutput("test_stats"), type = 8, color = nyenrode_blue, hide.ui = FALSE))),
         section_card(
           t("s22", cur),
-          DT::dataTableOutput("item_stats"),
+          shinycssloaders::withSpinner(DT::dataTableOutput("item_stats"), , type = 8, color = nyenrode_blue, hide.ui = FALSE),
           div(
             style = "width: 100%; margin: 0 auto;",
             plotOutput("item_plot", width = "100%"),
