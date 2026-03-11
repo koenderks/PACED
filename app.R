@@ -70,10 +70,10 @@ i18n <- list(
     # Sidebar instructions
     instructions_title = "Instructions",
     step1 = "Go to Cirrus to the Reports section",
-    step2_html = 'Select the test and export "Candidate scores - with criterum scores" (click <a href="https://raw.githubusercontent.com/koenderks/PACED/main/example.xlsx" target="_blank"><u>here</u></a> for an example file)',
+    step2_html = 'Select the test and export "Candidate scores - with criterum scores" (click <a href="example.xlsx" target="_blank"><u>here</u></a> for an example file)',
     step3 = "Upload the file below and check the overview",
     step4 = 'Click "Download Report" for a HTML-file with the results and their interpretation',
-    step5_html = 'Open the HTML-file, right-click, select "Print Page" and choose PDF (click <a href="https://raw.githubusercontent.com/koenderks/PACED/main/example.pdf" target="_blank"><u>here</u></a> for an example report)',
+    step5_html = 'Open the HTML-file, right-click, select "Print Page" and choose PDF (click <a href="example.pdf" target="_blank"><u>here</u></a> for an example report)',
     upload_label_html = "<b>Upload candidate scores (.xlsx from Cirrus)</b>",
     browse_label_html = "<b>Browse...</b>",
     no_file = "No file selected",
@@ -225,10 +225,10 @@ i18n <- list(
     # Sidebar instructions
     instructions_title = "Instructies",
     step1 = "Ga in Cirrus naar de sectie Rapporten",
-    step2_html = 'Selecteer de toets en exporteer "Kandidatenscores - met kriteriascores" (klik <a href="https://raw.githubusercontent.com/koenderks/PACED/main/voorbeeld.xlsx" target="_blank"><u>hier</u></a> voor een voorbeeldbestand)',
+    step2_html = 'Selecteer de toets en exporteer "Kandidatenscores - met kriteriascores" (klik <a href="voorbeeld.xlsx" target="_blank"><u>hier</u></a> voor een voorbeeldbestand)',
     step3 = "Upload het bestand en controleer het overzicht",
     step4 = 'Klik op "Download Rapport" voor een HTML-bestand met de resultaten en hun interpretatie',
-    step5_html = 'Open het rapport, klik met de rechtermuisknop, selecteer "Pagina afdrukken" en kies vervolgens PDF (klik <a href="https://raw.githubusercontent.com/koenderks/PACED/main/voorbeeld.pdf" target="_blank"><u>hier</u></a> voor een voorbeelddocument)',
+    step5_html = 'Open het rapport, klik met de rechtermuisknop, selecteer "Pagina afdrukken" en kies vervolgens PDF (klik <a href="voorbeeld.pdf" target="_blank"><u>hier</u></a> voor een voorbeelddocument)',
     upload_label_html = "<b>Upload kandidatenscores (.xlsx uit Cirrus)</b>",
     browse_label_html = "<b>Bladeren...</b>",
     no_file = "Geen bestand geselecteerd",
@@ -1203,12 +1203,13 @@ ui <- fluidPage(
   ),
   title = "PACED",
   tags$script(HTML("window.parent.document.title = 'PACED';")),
-  tags$script(HTML("
-  var link = window.parent.document.querySelector(\"link[rel='icon']\") ||
-             window.parent.document.createElement('link');
-  link.rel = 'icon';
-  link.href = 'https://raw.githubusercontent.com/koenderks/PACED/main/favicon.ico';
-  window.parent.document.head.appendChild(link);")),
+  tags$head(
+    tags$link(
+      rel = "icon",
+      type = "image/x-icon",
+      href = "favicon.ico"
+    )
+  ),
   tags$script(HTML("
   $(document).on('shiny:value', function(e) {
     if (e.name === 'sidebar_ui') {
