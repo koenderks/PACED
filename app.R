@@ -101,8 +101,8 @@ i18n <- list(
     row_sd = "Standard deviation",
     row_skewness = "Skewness",
     row_kurtosis = "Kurtosis",
-    expl_very_difficult = "Less than 20% of participants answered correctly, suggesting the item may be ambiguous, miskeyed, or cover material not sufficiently taught.",
-    expl_very_easy = "More than 80% of participants answered correctly, meaning the item provides limited discrimination between participants.",
+    expl_very_difficult = "The average score for this item was less than 20% of the maximum possible score, suggesting the item may be ambiguous, miskeyed, or cover material not sufficiently taught.",
+    expl_very_easy = "The average score for this item was more than 80% of the maximum possible score, meaning the item provides limited discrimination between participants.",
     expl_neg_disc = "Item-total correlation is negative, which indicates that lower-performing participants answered correctly more often than higher-performing participants.",
     expl_low_disc = "Item-total correlation is below 0.20, which may incidate a weak ability to distinguish between stronger and weaker participants.",
     expl_alpha = "Item removal increases Cronbach's alpha, which may indicate that the item does not align well with the construct measured by the assessment.",
@@ -152,13 +152,13 @@ i18n <- list(
     report_desc_12_b3 = "Multiple peaks in the distribution may indicate heterogeneous participant groups with different performance levels.",
     report_caa_intro = "An assessment analysis uses statistical indicators to evaluate the quality of the assessment (items). These metrics should be interpreted in the context of the assessment purpose, participant population, and sample size.",
     report_caa_21_intro = "The table below presents key evaluation metrics for the overall assessment. Cell colors follow the thresholds defined in the <i>Guideline Assessment Analysis</i>.",
-    report_caa_21_b1 = "<i>Average P (Difficulty)</i>: A value near 0 indicates a very difficult assessment, whereas a value near 1 indicates a very easy one. An assessment with moderate difficulty (typically between %s and %s) tends to provide the greatest discriminatory power.",
-    report_caa_21_b2 = "<i>Average RIT and RIR (Discrimination)</i>: These statistics measure the extent to which items differentiate between higher- and lower-performing participants. Values below %1$s (red) indicate weak discrimination, values between %1$s and %2$s (orange) indicate moderate discrimination, and values above %2$s (green) indicate strong discrimination.",
-    report_caa_21_b3 = "<i>Cronbach's alpha (Internal Consistency)</i>: This is the internal consistency of the assessment. A value above %s (green) generally indicates acceptable reliability. Lower values may suggest inconsistent items or items that contribute little to the measurement of the intended construct. A very high value (>0.9) may indicate redundancy among items.",
+    report_caa_21_b1 = "<i>Average P (difficulty)</i>: A value near 0 indicates a very difficult assessment, whereas a value near 1 indicates a very easy one. An assessment with moderate difficulty (typically between %s and %s) tends to provide the greatest discriminatory power.",
+    report_caa_21_b2 = "<i>Average RIT and RIR (discrimination)</i>: These statistics measure the extent to which items differentiate between higher- and lower-performing participants. Values below %1$s (red) indicate weak discrimination, values between %1$s and %2$s (orange) indicate moderate discrimination, and values above %2$s (green) indicate strong discrimination.",
+    report_caa_21_b3 = "<i>Cronbach's alpha (internal consistency)</i>: This is the internal consistency of the assessment. A value above %s (green) generally indicates acceptable reliability. Lower values may suggest inconsistent items or items that contribute little to the measurement of the intended construct. A very high value (>0.9) may indicate redundancy among items.",
     report_caa_22_intro = "This table summarizes key evaluation metrics for each individual item. Cell colors follow the thresholds defined in the <i>Guideline Assessment Analysis</i>.",
-    report_caa_22_b1 = "<i>P (Item Difficulty)</i>: The P-value represents the proportion of participants who answered the item correctly. Values near 0 indicate very difficult items, while values near 1 indicate very easy items.",
-    report_caa_22_b2 = "<i>RIT (Item-Total Correlation)</i>: RIT represents the correlation between an item score and the total score. Higher values indicate that the item aligns well with overall performance. Negative values require immediate review, as they indicate that lower-performing participants answered the item correctly more often than higher-performing participants.",
-    report_caa_22_b3 = "<i>RIR (Item-Rest Correlation)</i>: RIR represents the correlation between an item and the total score excluding that item. Interpretation follows the same thresholds as RIT and provides a similar indication of item discrimination.",
+    report_caa_22_b1 = "<i>P (item difficulty)</i>: The P-value represents the proportion of participants who answered the item correctly. Values near 0 indicate very difficult items, while values near 1 indicate very easy items.",
+    report_caa_22_b2 = "<i>RIT (item-total correlation)</i>: RIT represents the correlation between an item score and the total score. Higher values indicate that the item aligns well with overall performance. Negative values require immediate review, as they indicate that lower-performing participants answered the item correctly more often than higher-performing participants.",
+    report_caa_22_b3 = "<i>RIR (item-rest correlation)</i>: RIR represents the correlation between an item and the total score excluding that item. Interpretation follows the same thresholds as RIT and provides a similar indication of item discrimination.",
     report_caa_22_b4 = "<i>Alpha-if-deleted</i>: This statistic indicates the change in Cronbach’s alpha if the item were removed from the assessment. An increase in alpha (red) suggests that the item may reduce internal consistency.",
     report_caa_22_plot_intro = "The plot below displays item difficulty (P-value) in relation to item discrimination (RIT).",
     report_caa_22_plot_b1 = "Items that are very easy or very difficult and show low discrimination may provide limited measurement information and may warrant revision.",
@@ -262,11 +262,11 @@ i18n <- list(
     row_sd = "Standaarddeviatie",
     row_skewness = "Scheefheid",
     row_kurtosis = "Kurtosis",
-    expl_very_difficult = "Minder dan 20% van de deelnemers beantwoordde correct; mogelijk is het item ambigu, verkeerd aangeschreven (miskeyed), of betreft het stof die onvoldoende is aangeboden.",
-    expl_very_easy = "Meer dan 80% van de deelnemers beantwoordde correct, wat wijst op beperkte onderscheidingskracht.",
-    expl_neg_disc = "Item-totaalcorrelatie is negatief: lager presterende deelnemers beantwoorden vaker correct dan hoger presterenden.",
-    expl_low_disc = "Item-totaalcorrelatie is lager dan 0,20, wat kan wijzen op beperkt vermogen om onderscheid te maken tussen sterker en zwakker presterende deelnemers.",
-    expl_alpha = "Verwijderen van het item verhoogt Cronbach’s alpha; het item sluit mogelijk onvoldoende aan op het construct dat door de toets wordt gemeten.",
+    expl_very_difficult = "De gemiddelde score voor dit item was minder dan 20% van de maximaal mogelijke score, wat suggereert dat de vraag mogelijk onduidelijk is, verkeerd is nagekeken (verkeerde antwoordsleutel), of betrekking heeft op stof die onvoldoende is behandeld.",
+    expl_very_easy = "De gemiddelde score voor dit item was meer dan 80% van de maximaal mogelijke score, wat betekent dat de vraag weinig onderscheid maakt tussen deelnemers.",
+    expl_neg_disc = "Vraag-totaalcorrelatie is negatief: lager presterende deelnemers beantwoorden vaker correct dan hoger presterenden.",
+    expl_low_disc = "Vraag-totaalcorrelatie is lager dan 0,20, wat kan wijzen op beperkt vermogen om onderscheid te maken tussen sterker en zwakker presterende deelnemers.",
+    expl_alpha = "Verwijderen van de vraag verhoogt Cronbach’s alpha; de vraag sluit mogelijk onvoldoende aan op het construct dat door de toets wordt gemeten.",
     expl_neg_rir = "Negatieve correlatie met de rest van de toets; dit kan duiden op een mogelijke scoringsfout of inhoudelijke inconsistentie.",
 
     # Axis labels
@@ -313,18 +313,18 @@ i18n <- list(
     report_desc_12_b3 = "Meerdere pieken kunnen wijzen op heterogene groepen met verschillende prestatieniveaus.",
     report_caa_intro = "Een toetsanalyse gebruikt statistische indicatoren om de kwaliteit van de toets(vragen) te evalueren. Interpreteer deze in de context van doel, populatie en steekproefgrootte.",
     report_caa_21_intro = "De tabel hieronder toont kernmaten voor de gehele toets. Celkleuren volgen de drempels uit de <i>Richtlijn Toetsanalyse</i>.",
-    report_caa_21_b1 = "<i>Gemiddelde P (Moeilijkheid)</i>: Een waarde dicht bij 0 duidt op een zeer moeilijke toets; dicht bij 1 op een zeer makkelijke. Gematigde moeilijkheid (typisch tussen %s en %s) geeft doorgaans de beste discriminatie.",
-    report_caa_21_b2 = "<i>Gemiddelde RIT en RIR (Discriminatie)</i>: Maten voor het onderscheidend vermogen van items tussen hoger en lager presterende deelnemers. Waarden onder %1$s (rood) zijn zwak, tussen %1$s en %2$s (oranje) gemiddeld, en boven %2$s (groen) sterk.",
-    report_caa_21_b3 = "<i>Cronbach’s alpha (Interne consistentie)</i>: Waarde boven %s (groen) is doorgaans acceptabel. Lagere waarden kunnen wijzen op inconsistente of weinig bijdragende vragen. Zeer hoge waarden (>0,9) kunnen redundantie betekenen.",
+    report_caa_21_b1 = "<i>Gemiddelde P (moeilijkheid)</i>: Een waarde dicht bij 0 duidt op een zeer moeilijke toets; dicht bij 1 op een zeer makkelijke. Gematigde moeilijkheid (typisch tussen %s en %s) geeft doorgaans de beste discriminatie.",
+    report_caa_21_b2 = "<i>Gemiddelde RIT en RIR (discriminatie)</i>: Maten voor het onderscheidend vermogen van items tussen hoger en lager presterende deelnemers. Waarden onder %1$s (rood) zijn zwak, tussen %1$s en %2$s (oranje) gemiddeld, en boven %2$s (groen) sterk.",
+    report_caa_21_b3 = "<i>Cronbach’s alpha (interne consistentie)</i>: Waarde boven %s (groen) is doorgaans acceptabel. Lagere waarden kunnen wijzen op inconsistente of weinig bijdragende vragen. Zeer hoge waarden (>0,9) kunnen redundantie betekenen.",
     report_caa_22_intro = "Deze tabel vat kernmaten per vraag samen. Celkleuren volgen de drempels uit de <i>Richtlijn Toetsanalyse</i>.",
-    report_caa_22_b1 = "<i>P (Vraag‑moeilijkheid)</i>: Het aandeel deelnemers dat het item correct beantwoordde. Waarden dicht bij 0 duiden op zeer moeilijke vragen, waarden dicht bij 1 op zeer makkelijke.",
-    report_caa_22_b2 = "<i>RIT (Vraag‑totaalcorrelatie)</i>: Correlatie tussen vraagscore en totaalscore. Negatieve waarden vragen directe controle.",
-    report_caa_22_b3 = "<i>RIR (Vraag‑restcorrelatie)</i>: Correlatie tussen vraag en totaalscore exclusief de vraag; interpretatie gelijk aan RIT.",
+    report_caa_22_b1 = "<i>P (vraag‑moeilijkheid)</i>: De gemiddeld behaalde vraagscore als proportie van de maximum haalbare vraagscore. Waarden dicht bij 0 duiden op zeer moeilijke vragen, waarden dicht bij 1 op zeer makkelijke.",
+    report_caa_22_b2 = "<i>RIT (vraag‑totaalcorrelatie)</i>: Correlatie tussen vraagscore en totaalscore. Negatieve waarden vragen directe controle.",
+    report_caa_22_b3 = "<i>RIR (vraag‑restcorrelatie)</i>: Correlatie tussen vraag en totaalscore exclusief de vraag; interpretatie gelijk aan RIT.",
     report_caa_22_b4 = "<i>Alpha‑als‑verwijderd</i>: Verandering in Cronbach’s alpha bij verwijdering van de vraag. Een stijging (rood) suggereert lagere interne consistentie door de vraag.",
-    report_caa_22_plot_intro = "Onderstaande grafiek toont item‑moeilijkheid (P) versus discriminatie (RIT).",
+    report_caa_22_plot_intro = "Onderstaande grafiek toont item‑moeilijkheid (P-waarde) versus discriminatie (RIT).",
     report_caa_22_plot_b1 = "Zeer makkelijke/moeilijke vragen met lage discriminatie leveren weinig meetinformatie en verdienen herziening.",
     report_caa_22_plot_b2 = "Vragen met gematigde moeilijkheid en sterke discriminatie dragen het meest bij aan betrouwbaarheid.",
-    report_caa_22_plots_intro = "P (moeilijkheid) en RIT (discriminatie) worden hieronder opnieuw getoond; gekleurde gebieden markeren de relevante drempels.",
+    report_caa_22_plots_intro = "De vraag-moeilijkheid (P-waarde) en de vraag-discriminatie (RIT) worden in de figuren hieronder opnieuw weergegeven, waarbij gekleurde gebieden de relevante drempelwaarden aangeven.",
     report_caa_23_intro = "De onderstaande heatmap toont correlaties tussen alle vragen.",
     report_caa_23_b1 = "Sterke positieve correlaties (>0,6) kunnen duiden op inhoudelijke overlap en zouden gecontroleerd moeten worden op mogelijke redundantie.",
     report_caa_23_b2 = "Negatieve correlaties met meerdere vragen kunnen wijzen op scoringsfouten of inhoudelijke misalignment.",
@@ -657,11 +657,11 @@ create_flagged_items <- function(input, parsed) {
       explanations <- c()
       if (P < guidelines$P[1]) {
         issues <- c(issues, "Very difficult item")
-        explanations <- c(explanations, "Less than 20% of participants answered correctly, suggesting the item may be ambiguous, miskeyed, or cover material not sufficiently taught.")
+        explanations <- c(explanations, "The average score for this item was less than 20% of the maximum possible score, suggesting the item may be ambiguous, miskeyed, or cover material not sufficiently taught.")
       }
       if (P > guidelines$P[2]) {
         issues <- c(issues, "Very easy item")
-        explanations <- c(explanations, "More than 80% of participants answered correctly, meaning the item provides limited discrimination between participants.")
+        explanations <- c(explanations, "The average score for this item was more than 80% of the maximum possible score, meaning the item provides limited discrimination between participants.")
       }
       if (RIT < 0) {
         issues <- c(issues, "Negative discrimination")
@@ -816,9 +816,9 @@ translate_flagged_ui <- function(df, lang = "en") {
   )
 
   expl_map <- c(
-    "Less than 20% of participants answered correctly, suggesting the item may be ambiguous, miskeyed, or cover material not sufficiently taught." =
+    "The average score for this item was less than 20% of the maximum possible score, suggesting the item may be ambiguous, miskeyed, or cover material not sufficiently taught." =
       t("expl_very_difficult", lang),
-    "More than 80% of participants answered correctly, meaning the item provides limited discrimination between participants." =
+    "The average score for this item was more than 80% of the maximum possible score, meaning the item provides limited discrimination between participants." =
       t("expl_very_easy", lang),
     "Item-total correlation is negative, which indicates that lower-performing participants answered correctly more often than higher-performing participants." =
       t("expl_neg_disc", lang),
