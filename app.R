@@ -898,6 +898,23 @@ total_cronbach_alpha <- function(data) {
   (k / (k - 1)) * (1 - sum(item_vars) / total_var)
 }
 
+parse_num <- function(x) {
+  as.numeric(gsub(",", ".", x, fixed = TRUE))
+}
+
+format_decimal <- function(df, lang) {
+  if (lang == "nl") {
+    num_cols <- which(vapply(df, is.numeric, logical(1)))
+    if (length(num_cols)) {
+      df[num_cols] <- lapply(
+        df[num_cols],
+        function(x) formatC(x, decimal.mark = ",", format = "fg")
+      )
+    }
+  }
+  df
+}
+
 # ---------------------------
 # Report helpers: localize column names for report tables
 # ---------------------------
@@ -976,9 +993,9 @@ build_report_html <- function(
   avg_score <- descriptives$Value[descriptives$Statistic == "Average achieved score"]
   median_score <- descriptives$Value[descriptives$Statistic == "Median achieved score"]
   sd_score <- descriptives$Value[descriptives$Statistic == "Standard deviation"]
-  skew <- as.numeric(descriptives$Value[descriptives$Statistic == "Skewness"])
+  skew <- parse_num(descriptives$Value[descriptives$Statistic == "Skewness"])
   skew_text <- if (skew > 0.5) t("skew_pos", lang) else if (skew < -0.5) t("skew_neg", lang) else t("skew_sym", lang)
-  kurt <- as.numeric(descriptives$Value[descriptives$Statistic == "Kurtosis"])
+  kurt <- parse_num(descriptives$Value[descriptives$Statistic == "Kurtosis"])
   kurt_text <- if (kurt > 0.5) t("kurt_high", lang) else if (kurt < -0.5) t("kurt_low", lang) else t("kurt_mid", lang)
   difficulty_range <- if (mean(item_stats$P) > 0.7) t("diff_upper", lang) else if (mean(item_stats$P) <= 0.7 & mean(item_stats$P) > 0.5) t("diff_middle", lang) else t("diff_lower", lang)
 
@@ -1320,7 +1337,14 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   # Language state
   lang <- reactiveVal("nl")
-
+  observe({
+    if (lang() == "nl") {
+      options(OutDec = ",")
+    } else {
+      options(OutDec = ".")
+    }
+  })
+  
   # Disconnect overlay (localized)
   output$disconnect_ui <- renderUI({
     shinydisconnect::disconnectMessage(
@@ -1590,7 +1614,7 @@ server <- function(input, output, session) {
     col_avgRIR <- t("col_avgRIR", cur)
     col_alpha <- t("col_alpha", cur)
 
-    DT::datatable(df_loc,
+    DT::datatable(format_decimal(df_loc, cur),
       rownames = FALSE,
       options = list(dom = "t", ordering = FALSE, pagelength = 1, stateSave = FALSE),
       class = "compact"
@@ -1616,7 +1640,7 @@ server <- function(input, output, session) {
 
     alpha_threshold <- test_stats_react()[1, 4]
 
-    DT::datatable(df_loc,
+    DT::datatable(format_decimal(df_loc, cur),
       rownames = FALSE,
       options = list(pageLength = 5, scrollY = "250px", autoWidth = TRUE, stateSave = FALSE, language = list(search = t("search", cur), lengthMenu = t("lengthMenu", cur), info = t("info", cur), infoEmpty = t("infoEmpty", cur), paginate = list("previous" = t("paginate_previous", cur), "next" = t("paginate_next", cur)))),
       class = "stripe compact"
@@ -1641,7 +1665,7 @@ server <- function(input, output, session) {
 
     col_corr <- t("col_correlation", cur)
 
-    DT::datatable(df_loc,
+    DT::datatable(format_decimal(df_loc, cur),
       rownames = FALSE,
       options = list(pageLength = 5, autoWidth = TRUE, stateSave = FALSE),
       class = "stripe compact"
