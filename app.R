@@ -967,20 +967,16 @@ build_report_html <- function(
   lang = "en"
 ) {
   # ----- helper: embed plot in memory (faster) -----
-  embed_plot <- function(plot, width = 7, height = 4, res = 300) {
-    # Create temporary file
+  embed_plot <- function(plot, width, height) {
+    # Use a raster device
     tmp <- tempfile(fileext = ".png")
-    
-    # Use ragg raster device (much faster than base png for high-res plots)
-    ragg::agg_png(filename = tmp, width = width, height = height, units = "in", res = res)
+    png(tmp, width = width, height = height, units = "in", res = 300)
     print(plot)
     dev.off()
-    
-    # Read raw PNG and convert to base64
+
+    # Read back as raw bytes for base64 encoding
     img_data <- readBin(tmp, "raw", n = file.info(tmp)$size)
     uri <- paste0("data:image/png;base64,", base64enc::base64encode(img_data))
-    
-    # Return HTML img tag
     tags$img(src = uri, style = "display:block; margin:20px auto; max-width:100%;")
   }
 
