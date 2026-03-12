@@ -88,6 +88,13 @@ i18n <- list(
     examiner_ph = "e.g., Eric Xaminer",
     refresh = "Reset",
     download_report = "Download report",
+    
+    search = "Search:",
+    lengthMenu = "Show _MENU_ entries",
+    info = "Showing _START_ to _END_ of _TOTAL_ entries",
+    infoEmpty = "No entries to show",
+    paginate_previous = "Previous",
+    paginate_next = "Next",
 
     # Tabs & section headings
     tab1 = "1. Descriptives",
@@ -243,6 +250,13 @@ i18n <- list(
     examiner_ph = "bijv. Eric Xaminator",
     refresh = "Reset",
     download_report = "Download rapport",
+    
+    search = "Zoeken:",
+    lengthMenu = "Toon _MENU_ rijen",
+    info = "Toont _START_ tot _END_ van _TOTAL_ rijen",
+    infoEmpty = "Geen rijen om te tonen",
+    paginate_previous = "Vorige",
+    paginate_next = "Volgende",
 
     # Tabs & section headings
     tab1 = "1. Beschrijvende statistiek",
@@ -1604,7 +1618,7 @@ server <- function(input, output, session) {
 
     DT::datatable(df_loc,
       rownames = FALSE,
-      options = list(pageLength = 5, scrollY = "250px", autoWidth = TRUE, stateSave = FALSE),
+      options = list(pageLength = 5, scrollY = "250px", autoWidth = TRUE, stateSave = FALSE, language = list(search = t("search", cur), lengthMenu = t("lengthMenu", cur), info = t("info", cur), infoEmpty = t("infoEmpty", cur), paginate = list("previous" = t("paginate_previous", cur), "next" = t("paginate_next", cur)))),
       class = "stripe compact"
     ) |>
       DT::formatStyle(col_P, color = DT::styleInterval(guidelines$P, c("tomato", "forestgreen", "tomato"))) |>
@@ -1648,7 +1662,7 @@ server <- function(input, output, session) {
     DT::datatable(
       df,
       rownames = FALSE,
-      options = list(pageLength = 10, autoWidth = TRUE, stateSave = FALSE),
+      options = list(pageLength = 10, autoWidth = TRUE, stateSave = FALSE, language = list(search = t("search", cur), lengthMenu = t("lengthMenu", cur), info = t("info", cur), infoEmpty = t("infoEmpty", cur), paginate = list("previous" = t("paginate_previous", cur), "next" = t("paginate_next", cur)))),
       class = "stripe compact"
     )
   })
