@@ -76,7 +76,6 @@ i18n <- list(
     examiner_ph = "e.g., Eric Xaminer",
     refresh = "Reset",
     download_report = "Download report",
-    
     search = "Search:",
     lengthMenu = "Show _MENU_ entries",
     info = "Showing _START_ to _END_ of _TOTAL_ entries",
@@ -238,7 +237,6 @@ i18n <- list(
     examiner_ph = "bijv. Eric Xaminator",
     refresh = "Reset",
     download_report = "Download rapport",
-    
     search = "Zoeken:",
     lengthMenu = "Toon _MENU_ rijen",
     info = "Toont _START_ tot _END_ van _TOTAL_ rijen",
@@ -310,7 +308,7 @@ i18n <- list(
     report_desc_11_b4 = "De scheefheid van %s geeft aan dat de verdeling %s is. Positieve scheefheid betekent meer lage en minder hoge scores; negatieve scheefheid het omgekeerde.",
     report_desc_11_b5 = "De kurtosis van %s betekent dat de verdeling %s is. Hogere waarden duiden op sterkere concentratie rond het gemiddelde met meer uitschieters; lagere waarden op een plattere verdeling.",
     report_desc_12_intro = "Het onderstaande histogram visualiseert de verdeling van de scores. De horizontale as toont de scorebereiken; de verticale as het aantal deelnemers binnen elk bereik.",
-    report_desc_12_b1 = "De meeste deelnemers scoorden in de %s, wat aangeeft dat dit bereik het meest effectief onderscheid maakte tussen prestatieniveaus.",
+    report_desc_12_b1 = "De meeste deelnemers scoorden in het %s, wat aangeeft dat dit bereik het meest effectief onderscheid maakte tussen prestatieniveaus.",
     report_desc_12_b2 = "Let op pieken dicht bij de maximale of minimale score: dit kan plafond‑ of vloereffecten aangeven, wat de onderscheidende kracht kan beïnvloeden.",
     report_desc_12_b3 = "Meerdere pieken kunnen wijzen op heterogene groepen met verschillende prestatieniveaus.",
     report_caa_intro = "Een toetsanalyse gebruikt statistische indicatoren om de kwaliteit van de toets(vragen) te evalueren. Interpreteer deze in de context van doel, populatie en steekproefgrootte.",
@@ -341,7 +339,7 @@ i18n <- list(
     kurt_low = "platter dan een normaalverdeling, met bredere spreiding en minder uitschieters",
     kurt_mid = "ongeveer normaal in spitsheid, met een evenwichtige spreiding rond het gemiddelde",
     diff_upper = "bovenste bereik (>70%)",
-    diff_middle = "middenbereik (>50% & <70%)",
+    diff_middle = "middelse bereik (>50% & <70%)",
     diff_lower = "onderste bereik (<50%)",
 
     # Report: table column localizations
@@ -968,15 +966,21 @@ build_report_html <- function(
   flagged_items,
   lang = "en"
 ) {
-  # ----- helper: embed plot in HTML -----
+  # ----- helper: embed plot in memory (faster) -----
   embed_plot <- function(plot, width, height) {
-    f <- tempfile(fileext = ".png")
-    ggplot2::ggsave(f, plot, width = width, height = height, dpi = 300)
-    uri <- base64enc::dataURI(file = f, mime = "image/png")
+    # Use a raster device
+    tmp <- tempfile(fileext = ".png")
+    png(tmp, width = width, height = height, units = "in", res = 300)
+    print(plot)
+    dev.off()
+
+    # Read back as raw bytes for base64 encoding
+    img_data <- readBin(tmp, "raw", n = file.info(tmp)$size)
+    uri <- paste0("data:image/png;base64,", base64enc::base64encode(img_data))
     tags$img(src = uri, style = "display:block; margin:20px auto; max-width:100%;")
   }
 
-  # ----- Derived interpretations -----
+  # ----- Precompute key stats once -----
   participants <- descriptives$Value[descriptives$Statistic == "Number of participants"]
   avg_score <- descriptives$Value[descriptives$Statistic == "Average achieved score"]
   median_score <- descriptives$Value[descriptives$Statistic == "Median achieved score"]
@@ -985,35 +989,81 @@ build_report_html <- function(
   skew_text <- if (skew > 0.5) t("skew_pos", lang) else if (skew < -0.5) t("skew_neg", lang) else t("skew_sym", lang)
   kurt <- parse_num(descriptives$Value[descriptives$Statistic == "Kurtosis"])
   kurt_text <- if (kurt > 0.5) t("kurt_high", lang) else if (kurt < -0.5) t("kurt_low", lang) else t("kurt_mid", lang)
-  difficulty_range <- if (mean(item_stats$P) > 0.7) t("diff_upper", lang) else if (mean(item_stats$P) <= 0.7 & mean(item_stats$P) > 0.5) t("diff_middle", lang) else t("diff_lower", lang)
+  difficulty_range <- {
+    mean_P <- mean(item_stats$P)
+    if (mean_P > 0.7) {
+      t("diff_upper", lang)
+    } else if (mean_P > 0.5) {
+      t("diff_middle", lang)
+    } else {
+      t("diff_lower", lang)
+    }
+  }
 
-  # ----- Tables with coloring (and localized headers) -----
-  # Descriptives
-  # Descriptives (translate CONTENT row labels, then HEADERS)
+  alpha_test <- test_stats$`Cronbach's alpha`[1]
+
+  # ----- Vectorized coloring for test stats -----
+  test_tab <- test_stats
+  test_tab$`Average P` <- kableExtra::cell_spec(
+    test_tab$`Average P`, "html",
+    color = ifelse(test_tab$`Average P` < guidelines$P[1], "tomato",
+      ifelse(test_tab$`Average P` <= guidelines$P[2], "forestgreen", "tomato")
+    )
+  )
+  test_tab$`Average RIT` <- kableExtra::cell_spec(
+    test_tab$`Average RIT`, "html",
+    color = ifelse(test_tab$`Average RIT` < guidelines$RIT[1], "tomato",
+      ifelse(test_tab$`Average RIT` <= guidelines$RIT[2], "orange", "forestgreen")
+    )
+  )
+  test_tab$`Average RIR` <- kableExtra::cell_spec(
+    test_tab$`Average RIR`, "html",
+    color = ifelse(test_tab$`Average RIR` < guidelines$RIR[1], "tomato",
+      ifelse(test_tab$`Average RIR` <= guidelines$RIR[2], "orange", "forestgreen")
+    )
+  )
+  test_tab$`Cronbach's alpha` <- kableExtra::cell_spec(
+    test_tab$`Cronbach's alpha`, "html",
+    color = ifelse(test_tab$`Cronbach's alpha` < guidelines$alpha[1], "tomato", "forestgreen")
+  )
+
+  # ----- Vectorized coloring for item stats -----
+  item_tab <- item_stats
+  item_tab$P <- kableExtra::cell_spec(
+    item_tab$P, "html",
+    color = ifelse(item_tab$P < guidelines$P[1], "tomato",
+      ifelse(item_tab$P <= guidelines$P[2], "forestgreen", "tomato")
+    )
+  )
+  item_tab$RIT <- kableExtra::cell_spec(
+    item_tab$RIT, "html",
+    color = ifelse(item_tab$RIT < guidelines$RIT[1], "tomato",
+      ifelse(item_tab$RIT <= guidelines$RIT[2], "orange", "forestgreen")
+    )
+  )
+  item_tab$RIR <- kableExtra::cell_spec(
+    item_tab$RIR, "html",
+    color = ifelse(item_tab$RIR < guidelines$RIR[1], "tomato",
+      ifelse(item_tab$RIR <= guidelines$RIR[2], "orange", "forestgreen")
+    )
+  )
+  item_tab$`Alpha-if-deleted` <- kableExtra::cell_spec(
+    item_tab$`Alpha-if-deleted`, "html",
+    color = ifelse(item_tab$`Alpha-if-deleted` < alpha_test, "forestgreen", "tomato")
+  )
+
+  # ----- Localize tables once -----
   descriptives_loc <- localize_desc_content(descriptives, lang)
-  desc_tab <- localize_report_colnames(descriptives_loc, lang, "desc")
-  desc_tab <- knitr::kable(desc_tab, row.names = FALSE, format = "html", table.attr = 'class="left_table"') |>
+  desc_tab <- localize_report_colnames(descriptives_loc, lang, "desc") |>
+    knitr::kable(row.names = FALSE, format = "html", table.attr = 'class="left_table"') |>
     kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = "striped")
 
-  # Test stats
-  test_tab <- test_stats
-  test_tab$`Average P` <- kableExtra::cell_spec(test_tab$`Average P`, "html", color = ifelse(test_tab$`Average P` < guidelines$P[1], "tomato", ifelse(test_tab$`Average P` <= guidelines$P[2], "forestgreen", "tomato")))
-  test_tab$`Average RIT` <- kableExtra::cell_spec(test_tab$`Average RIT`, "html", color = ifelse(test_tab$`Average RIT` < guidelines$RIT[1], "tomato", ifelse(test_tab$`Average RIT` <= guidelines$RIT[2], "orange", "forestgreen")))
-  test_tab$`Average RIR` <- kableExtra::cell_spec(test_tab$`Average RIR`, "html", color = ifelse(test_tab$`Average RIR` < guidelines$RIR[1], "tomato", ifelse(test_tab$`Average RIR` <= guidelines$RIR[2], "orange", "forestgreen")))
-  test_tab$`Cronbach's alpha` <- kableExtra::cell_spec(test_tab$`Cronbach's alpha`, "html", color = ifelse(test_tab$`Cronbach's alpha` < guidelines$alpha[1], "tomato", "forestgreen"))
-  test_tab <- localize_report_colnames(test_tab, lang, "test")
-  test_tab <- knitr::kable(test_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') |>
+  test_tab <- localize_report_colnames(test_tab, lang, "test") |>
+    knitr::kable(escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') |>
     kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 
-  # Item stats
-  alpha_test <- test_stats$`Cronbach's alpha`[1]
-  item_tab <- item_stats
-  item_tab$P <- kableExtra::cell_spec(item_tab$P, "html", color = ifelse(item_tab$P < guidelines$P[1], "tomato", ifelse(item_tab$P <= guidelines$P[2], "forestgreen", "tomato")))
-  item_tab$RIT <- kableExtra::cell_spec(item_tab$RIT, "html", color = ifelse(item_tab$RIT < guidelines$RIR[1], "tomato", ifelse(item_tab$RIT <= guidelines$RIR[1], "orange", "forestgreen")))
-  item_tab$RIR <- kableExtra::cell_spec(item_tab$RIR, "html", color = ifelse(item_tab$RIR < guidelines$RIR[1], "tomato", ifelse(item_tab$RIR <= guidelines$RIR[1], "orange", "forestgreen")))
-  item_tab$`Alpha-if-deleted` <- kableExtra::cell_spec(item_tab$`Alpha-if-deleted`, "html", color = ifelse(item_tab$`Alpha-if-deleted` < alpha_test, "forestgreen", "tomato"))
-  item_tab <- localize_report_colnames(item_tab, lang, "item")
-  item_tab <- knitr::kable(item_tab, escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') |>
+  item_tab <- localize_report_colnames(item_tab, lang, "item") |>
+    knitr::kable(escape = FALSE, row.names = FALSE, format = "html", table.attr = 'class="center_table"') |>
     kableExtra::kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 
   # Correlation table
@@ -1184,7 +1234,6 @@ build_report_html <- function(
 # UI
 # ---------------------------
 ui <- fluidPage(
-  
   tags$head(
     tags$style(HTML("
       /* Full-page overlay */
@@ -1215,10 +1264,11 @@ ui <- fluidPage(
       }
     "))
   ),
-  
+
   # Preloader div (visible immediately)
-  div(id = "preloader-overlay",
-      div(class = "loader")
+  div(
+    id = "preloader-overlay",
+    div(class = "loader")
   ),
   title = "PACED",
   tags$script(HTML("window.parent.document.title = 'PACED';")),
@@ -1332,7 +1382,7 @@ server <- function(input, output, session) {
       options(OutDec = ".")
     }
   })
-  
+
   # Disconnect overlay (localized)
   output$disconnect_ui <- renderUI({
     shinydisconnect::disconnectMessage(
@@ -1348,12 +1398,12 @@ server <- function(input, output, session) {
   # Title bar with top-right language toggle
   output$title_bar <- renderUI({
     cur <- lang()
-    
+
     tags$div(
       class = "app-title-bar",
       tags$div(
         class = "app-title-bar-inner",
-        
+
         # --- TITLE + LOGO ---
         tags$div(
           class = "app-title",
@@ -1364,7 +1414,7 @@ server <- function(input, output, session) {
           ),
           t("app_title", cur)
         ),
-        
+
         # --- LANGUAGE TOGGLE (unchanged) ---
         tags$div(
           class = "lang-toggle",
