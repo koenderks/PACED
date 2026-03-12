@@ -2,18 +2,6 @@
 # PACED (localized EN <-> NL) - Single-file Shiny app
 # =========================================================
 library(shiny)
-# if (FALSE) {
-#   library(readxl)
-#   library(ggplot2)
-#   library(DT)
-#   library(bslib)
-#   library(shinydisconnect)
-#   library(knitr)
-#   library(kableExtra)
-#   library(htmltools)
-#   library(base64enc)
-#   library(shinycssloaders)
-# }
 
 # ------------------------------------
 # Workaround for Chromium Issue 468227
