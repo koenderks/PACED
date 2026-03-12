@@ -69,15 +69,15 @@ i18n <- list(
 
     # Sidebar instructions
     instructions_title = "Instructions",
-    step1 = "Go to Cirrus to the Reports section",
+    step1 = "In Cirrus, navigate to the Marking tab or the Reports tab",
     step2_html = 'Select the test and export "Candidate scores - with criterum scores" (click <a href="example.xlsx" target="_blank"><u>here</u></a> for an example file)',
     step3 = "Upload the file below and check the overview",
     step4 = 'Click "Download Report" for a HTML-file with the results and their interpretation',
     step5_html = 'Open the HTML-file, right-click, select "Print Page" and choose PDF (click <a href="example.pdf" target="_blank"><u>here</u></a> for an example report)',
-    upload_label_html = "<b>Upload candidate scores (.xlsx from Cirrus)</b>",
+    upload_label_html = "<b>Upload candidate scores (.xlsx)</b>",
     browse_label_html = "<b>Browse...</b>",
     no_file = "No file selected",
-    quick_overview = "IMPORTANT: OVERVIEW",
+    quick_overview = "IMPORTANT: CHECK THIS OVERVIEW",
     participants = "Participants",
     items = "Items",
     max_score = "Maximum possible score",
@@ -224,21 +224,21 @@ i18n <- list(
 
     # Sidebar instructions
     instructions_title = "Instructies",
-    step1 = "Ga in Cirrus naar de sectie Rapporten",
+    step1 = "Navigeer in Cirrus naar het tabblad Beoordelen of het tabblad Rapportages",
     step2_html = 'Selecteer de toets en exporteer "Kandidatenscores - met kriteriascores" (klik <a href="voorbeeld.xlsx" target="_blank"><u>hier</u></a> voor een voorbeeldbestand)',
     step3 = "Upload het bestand en controleer het overzicht",
     step4 = 'Klik op "Download Rapport" voor een HTML-bestand met de resultaten en hun interpretatie',
     step5_html = 'Open het rapport, klik met de rechtermuisknop, selecteer "Pagina afdrukken" en kies vervolgens PDF (klik <a href="voorbeeld.pdf" target="_blank"><u>hier</u></a> voor een voorbeelddocument)',
-    upload_label_html = "<b>Upload kandidatenscores (.xlsx uit Cirrus)</b>",
+    upload_label_html = "<b>Upload kandidatenscores (.xlsx)</b>",
     browse_label_html = "<b>Bladeren...</b>",
     no_file = "Geen bestand geselecteerd",
-    quick_overview = "BELANGRIJK: OVERZICHT",
+    quick_overview = "BELANGRIJK: CONTROLEER DIT OVERZICHT",
     participants = "Deelnemers",
     items = "Vragen",
     max_score = "Maximaal haalbare score",
     assessment_name = "Naam toets",
     assessment_name_ph = "bijv. Statistical Reasoning - Eindtoets",
-    assessment_date = "Toetsdatum",
+    assessment_date = "Datum toets",
     examiner = "Examinator",
     examiner_ph = "bijv. Eric Xaminator",
     refresh = "Reset",
@@ -1476,16 +1476,16 @@ server <- function(input, output, session) {
       tabPanel(
         title = t("tab1", cur),
         br(),
-        section_card(t("s11", cur), shinycssloaders::withSpinner(DT::dataTableOutput("descriptives"), type = 8, color = nyenrode_blue, hide.ui = FALSE)),
+        section_card(t("s11", cur), shinycssloaders::withSpinner(DT::dataTableOutput("descriptives"), type = 8, color = nyenrode_blue, hide.ui = FALSE, size = 0.25)),
         section_card(t("s12", cur), div(style = "width: 100%; margin: 0 auto;", shinycssloaders::withSpinner(plotOutput("histogram", width = "100%"), type = 8, color = nyenrode_blue, hide.ui = FALSE)))
       ),
       tabPanel(
         title = t("tab2", cur),
         br(),
-        section_card(t("s21", cur), div(style = "padding: 0;", shinycssloaders::withSpinner(DT::dataTableOutput("test_stats"), type = 8, color = nyenrode_blue, hide.ui = FALSE))),
+        section_card(t("s21", cur), div(style = "padding: 0;", shinycssloaders::withSpinner(DT::dataTableOutput("test_stats"), type = 8, color = nyenrode_blue, hide.ui = FALSE, size = 0.25))),
         section_card(
           t("s22", cur),
-          shinycssloaders::withSpinner(DT::dataTableOutput("item_stats"), , type = 8, color = nyenrode_blue, hide.ui = FALSE),
+          shinycssloaders::withSpinner(DT::dataTableOutput("item_stats"), , type = 8, color = nyenrode_blue, hide.ui = FALSE, size = 0.25),
           div(
             style = "width: 100%; margin: 0 auto;",
             plotOutput("item_plot", width = "100%"),
@@ -1500,14 +1500,14 @@ server <- function(input, output, session) {
           div(
             style = "width: 100%; margin: 0 auto;",
             shinycssloaders::withSpinner(plotOutput("corr_plot", width = "100%", height = "1000px"), type = 8, color = nyenrode_blue, hide.ui = FALSE),
-            shinycssloaders::withSpinner(DT::dataTableOutput("high_cor_items"), type = 8, color = nyenrode_blue, hide.ui = FALSE)
+            shinycssloaders::withSpinner(DT::dataTableOutput("high_cor_items"), type = 8, color = nyenrode_blue, hide.ui = FALSE, size = 0.25)
           )
         )
       ),
       tabPanel(
         title = t("tab3", cur),
         br(),
-        shinycssloaders::withSpinner(DT::dataTableOutput("flagged_items"), type = 8, color = nyenrode_blue, hide.ui = FALSE)
+        shinycssloaders::withSpinner(DT::dataTableOutput("flagged_items"), type = 8, color = nyenrode_blue, hide.ui = FALSE, size = 0.25)
       )
     )
   })
